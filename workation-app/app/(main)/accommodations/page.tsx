@@ -238,7 +238,7 @@ export default function AccommodationsPage() {
                         <span className="text-xs bg-white/20 text-white px-2 py-0.5 rounded-full">
                           {rank === 1 ? '🥇 1순위' : rank === 2 ? '🥈 2순위' : '🥉 3순위'}
                         </span>
-                        <span className="text-xs font-bold text-blue-200">{acc.price_per_night.toLocaleString()}원/박</span>
+                        <span className="text-xs font-bold text-blue-200">{(acc.price_per_night || 0).toLocaleString()}원/박</span>
                       </div>
                       <div className="font-semibold text-sm text-white mb-0.5">{acc.name}</div>
                       <div className="text-xs text-blue-200 mb-2">📍 {(acc.region || '')}</div>
@@ -311,7 +311,7 @@ export default function AccommodationsPage() {
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-blue-400 font-bold text-sm">
-                        {acc.price_per_night.toLocaleString()}원<span className="text-[#94A3B8] font-normal text-xs"> /박</span>
+                        {(acc.price_per_night || 0).toLocaleString()}원<span className="text-[#94A3B8] font-normal text-xs"> /박</span>
                       </span>
                       <span className="text-xs text-[#94A3B8]">⭐ {acc.rating}</span>
                     </div>

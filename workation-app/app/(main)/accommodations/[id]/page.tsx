@@ -145,7 +145,7 @@ export default function AccommodationDetailPage() {
           <div className="col-span-1">
             <div className="bg-white border border-[#E2E8F0] rounded-xl p-5 sticky top-6">
               <div className="text-2xl font-black text-blue-400 mb-1">
-                {acc.price_per_night.toLocaleString()}원
+                {(acc.price_per_night || 0).toLocaleString()}원
               </div>
               <div className="text-xs text-[#94A3B8] mb-5">1박 기준 · 세금 포함</div>
 
@@ -175,7 +175,7 @@ export default function AccommodationDetailPage() {
                   {subsidies.map(s => (
                     <div key={s.id} className="flex justify-between items-center text-xs mb-1">
                       <span className="text-emerald-700 truncate pr-2">{s.name}</span>
-                      <span className="font-bold text-emerald-600 shrink-0">{s.amount_per_person.toLocaleString()}원/인</span>
+                      <span className="font-bold text-emerald-600 shrink-0">{(s.amount_per_person || 0).toLocaleString()}원/인</span>
                     </div>
                   ))}
                 </div>
