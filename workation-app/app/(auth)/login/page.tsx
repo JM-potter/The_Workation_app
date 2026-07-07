@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
-import { supabase } from '@/lib/supabase'
+import { supabase, BYPASS_AUTH } from '@/lib/supabase'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -17,6 +17,19 @@ export default function LoginPage() {
   async function handleLogin() {
     setError('')
     setLoading(true)
+
+    if (BYPASS_AUTH) {
+      setTimeout(() => {
+        setLoading(false)
+        if (email.includes('hr') || email.includes('admin')) {
+          router.push('/dashboard')
+        } else {
+          router.push('/select')
+        }
+      }, 500)
+      return
+    }
+
     const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password })
     setLoading(false)
     if (authError) {
