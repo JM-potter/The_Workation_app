@@ -262,26 +262,20 @@ export default function MyPage() {
           </div>
         )}
 
-        {/* 퀵 액션 버튼 2개 */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
+        {/* 퀵 액션 버튼 */}
+        <div className="mb-6">
           <Link href="/my-workation"
-            className="flex items-center gap-3 bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] rounded-2xl p-5 hover:opacity-90 transition-opacity group">
-            <span className="text-2xl">📶</span>
-            <div className="flex-1">
-              <div className="text-white font-black text-sm">마이 워케이션</div>
-              <div className="text-teal-200 text-xs mt-0.5">와이파이 근태 · 사진 증빙</div>
+            className="flex items-center gap-4 bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] rounded-2xl p-5 hover:opacity-95 transition-opacity shadow-sm group">
+            <div className="w-12 h-12 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center text-2xl shadow-inner">
+              📶
             </div>
-            <span className="text-white/60 group-hover:text-white transition-colors">→</span>
-          </Link>
-
-          <Link href="/documents"
-            className="flex items-center gap-3 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-5 hover:opacity-90 transition-opacity group">
-            <span className="text-2xl">📄</span>
             <div className="flex-1">
-              <div className="text-white font-black text-sm">업무 인증</div>
-              <div className="text-emerald-100 text-xs mt-0.5">증빙 서류 업로드</div>
+              <div className="text-white font-black text-lg">마이 워케이션 입장하기</div>
+              <div className="text-teal-100 text-sm mt-0.5">와이파이 근태 인증 및 업무 증빙 사진 업로드</div>
             </div>
-            <span className="text-white/60 group-hover:text-white transition-colors">→</span>
+            <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-white/80 group-hover:bg-white/20 group-hover:text-white transition-all">
+              →
+            </div>
           </Link>
         </div>
 
