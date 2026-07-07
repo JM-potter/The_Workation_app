@@ -79,7 +79,7 @@ export default function AccommodationsPage() {
 
   function getSubsidyTotal(region: string) {
     return subsidies
-      .filter(s => region.includes(s.region) || s.region.includes(region.split(' ')[0]))
+      .filter(s => (region || '').includes(s.region) || (s.region || '').includes((region || '').split(' ')[0]))
       .reduce((sum, s) => sum + s.amount_per_person, 0)
   }
 
@@ -87,10 +87,10 @@ export default function AccommodationsPage() {
     .filter(a => {
       if (location === '전체') return true
       const aliases = LOCATION_ALIASES[location] ?? [location]
-      return aliases.some(alias => a.region.includes(alias))
+      return aliases.some(alias => (a.region || '').includes(alias))
     })
     .sort((a, b) => {
-      const aGangwon = a.region.includes('강원') ? 0 : 1
+      const aGangwon = (a.region || '').includes('강원') ? 0 : 1
       const bGangwon = b.region.includes('강원') ? 0 : 1
       return aGangwon - bGangwon
     })
@@ -241,14 +241,14 @@ export default function AccommodationsPage() {
                         <span className="text-xs font-bold text-blue-200">{acc.price_per_night.toLocaleString()}원/박</span>
                       </div>
                       <div className="font-semibold text-sm text-white mb-0.5">{acc.name}</div>
-                      <div className="text-xs text-blue-200 mb-2">📍 {acc.region}</div>
+                      <div className="text-xs text-blue-200 mb-2">📍 {(acc.region || '')}</div>
                       <div className="text-xs text-yellow-200 mb-2 bg-white/10 rounded-lg px-2 py-1">
                         ✨ {reason}
                       </div>
-                      {getSubsidyTotal(acc.region) > 0 && (
+                      {getSubsidyTotal((acc.region || '')) > 0 && (
                         <div className="flex items-center gap-1 mb-1">
                           <span className="text-xs bg-emerald-400/20 border border-emerald-400/40 text-emerald-300 px-2 py-0.5 rounded-full font-semibold">
-                            💰 {aiPeople}명 기준 {(getSubsidyTotal(acc.region) * aiPeople).toLocaleString()}원 절감
+                            💰 {aiPeople}명 기준 {(getSubsidyTotal((acc.region || '')) * aiPeople).toLocaleString()}원 절감
                           </span>
                         </div>
                       )}
@@ -298,14 +298,14 @@ export default function AccommodationsPage() {
                   <img src={getImageUrl(acc)} alt={acc.name} className="h-44 w-full object-cover" />
                   <div className="p-4">
                     <h3 className="font-semibold text-sm leading-snug mb-1">{acc.name}</h3>
-                    <p className="text-xs text-[#94A3B8] mb-2">📍 {acc.region}</p>
+                    <p className="text-xs text-[#94A3B8] mb-2">📍 {(acc.region || '')}</p>
                     <div className="flex flex-wrap gap-1 mb-3">
                       {acc.amenities?.slice(0, 2).map(a => (
                         <span key={a} className="text-xs bg-[#F1F5F9] text-[#475569] px-2 py-0.5 rounded">{a}</span>
                       ))}
-                      {getSubsidyTotal(acc.region) > 0 && (
+                      {getSubsidyTotal((acc.region || '')) > 0 && (
                         <span className="text-xs bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded border border-emerald-500/20">
-                          💰 {getSubsidyTotal(acc.region).toLocaleString()}원/인 지원
+                          💰 {getSubsidyTotal((acc.region || '')).toLocaleString()}원/인 지원
                         </span>
                       )}
                     </div>

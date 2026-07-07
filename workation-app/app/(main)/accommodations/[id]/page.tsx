@@ -72,7 +72,7 @@ export default function AccommodationDetailPage() {
         const { data: subs } = await supabase.from('subsidies').select('*')
         if (subs) {
           setSubsidies(subs.filter((s: Subsidy) =>
-            data.region.includes(s.region) || s.region.includes(data.region.split(' ')[0])
+            (data.region || '').includes(s.region) || (s.region || '').includes((data.region || '').split(' ')[0])
           ))
         }
       }
@@ -119,7 +119,7 @@ export default function AccommodationDetailPage() {
                 <span className="text-xs bg-[#F1F5F9] text-[#475569] px-2 py-0.5 rounded">⭐ {acc.rating}</span>
               </div>
               <h1 className="text-2xl font-bold mb-1">{acc.name}</h1>
-              <p className="text-sm text-[#475569]">📍 {acc.address || acc.region}</p>
+              <p className="text-sm text-[#475569]">📍 {acc.address || (acc.region || '')}</p>
             </div>
 
             <div className="bg-white border border-[#E2E8F0] rounded-xl p-5">
@@ -131,7 +131,7 @@ export default function AccommodationDetailPage() {
               <div className="bg-white border border-[#E2E8F0] rounded-xl p-5">
                 <h2 className="font-semibold mb-3">편의시설</h2>
                 <div className="grid grid-cols-2 gap-2">
-                  {acc.amenities.map((a) => (
+                  {(acc.amenities || []).map((a) => (
                     <div key={a} className="flex items-center gap-2 text-sm text-[#475569]">
                       <span className="text-emerald-500">✓</span> {a}
                     </div>
