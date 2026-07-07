@@ -300,7 +300,7 @@ export default function AccommodationsPage() {
                     <h3 className="font-semibold text-sm leading-snug mb-1">{acc.name}</h3>
                     <p className="text-xs text-[#94A3B8] mb-2">📍 {(acc.region || '')}</p>
                     <div className="flex flex-wrap gap-1 mb-3">
-                      {acc.amenities?.slice(0, 2).map(a => (
+                      {(acc.amenities || []).slice(0, 2).map(a => (
                         <span key={a} className="text-xs bg-[#F1F5F9] text-[#475569] px-2 py-0.5 rounded">{a}</span>
                       ))}
                       {getSubsidyTotal((acc.region || '')) > 0 && (
