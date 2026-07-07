@@ -3,7 +3,6 @@ import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import Footer from '@/components/ui/Footer'
 import Header from '@/components/ui/Header'
-import { useHrOnly } from '@/lib/useHrOnly'
 import { supabase } from '@/lib/supabase'
 
 const PERF_BENCHMARKS = [
@@ -41,7 +40,7 @@ function daysBetween(start: string, end: string) {
 }
 
 export default function ReportPage() {
-  useHrOnly()
+  // Hardcoded for demo mode
 
   const [bookings,   setBookings]   = useState<BookingRow[]>([])
   const [subsidies,  setSubsidies]  = useState<SubsidyRow[]>([])
@@ -52,29 +51,18 @@ export default function ReportPage() {
   const [aiError,    setAiError]    = useState('')
 
   useEffect(() => {
-    Promise.all([
-      supabase
-        .from('bookings')
-        .select('*, accommodations(name, region, location)')
-        .eq('status', 'confirmed')
-        .order('start_date', { ascending: false }),
-      supabase.from('subsidies').select('region, name, amount_per_person'),
-      supabase.auth.getUser(),
-    ]).then(async ([{ data: bData }, { data: sData }, { data: uData }]) => {
-      if (bData) setBookings(bData as any)
-      if (sData) setSubsidies(sData)
-
-      const companyId = uData.user?.user_metadata?.company_id
-      if (companyId) {
-        const { data: co } = await supabase
-          .from('companies')
-          .select('name')
-          .eq('id', companyId)
-          .single()
-        if (co?.name) setCompany(co.name)
-      }
-      setLoading(false)
-    })
+    // Hardcoded mock data bypasses fetch
+    setBookings([
+      { id: '1', start_date: '2026-07-10', end_date: '2026-07-12', guests: 2, total_price: 180000, status: 'confirmed', accommodations: { name: '강릉 홍보 체험형 워케이션', region: '강원도 강릉시', location: '' } },
+      { id: '2', start_date: '2026-07-15', end_date: '2026-07-18', guests: 1, total_price: 240000, status: 'confirmed', accommodations: { name: '제주 애월 바다 전망 오피스', region: '제주특별자치도 제주시', location: '' } },
+      { id: '3', start_date: '2026-07-20', end_date: '2026-07-22', guests: 3, total_price: 320000, status: 'confirmed', accommodations: { name: '속초 설악산 전망 워케이션', region: '강원특별자치도 속초시', location: '' } },
+    ] as any)
+    setSubsidies([
+      { region: '강원도', name: '강원도 워케이션 체류 지원', amount_per_person: 50000 },
+      { region: '제주특별자치도', name: '제주도 청년 워케이션 바우처', amount_per_person: 40000 },
+    ])
+    setCompany('더 워케이션 데모 기업')
+    setLoading(false)
   }, [])
 
   const confirmed = bookings
