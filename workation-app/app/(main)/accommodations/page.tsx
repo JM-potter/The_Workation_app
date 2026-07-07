@@ -46,6 +46,15 @@ const LOCATION_ALIASES: Record<string, string[]> = {
   '전라북도':  ['전라북도', '전북'],
 }
 
+const MOCK_ACCOMMODATIONS: Accommodation[] = [
+  { id: '1', name: '강릉 오션뷰 워케이션 센터', region: '강원도 강릉시', price_per_night: 85000, capacity: 4, rating: 4.8, tags: ['오션뷰', '코워킹'], amenities: ['와이파이', '커피머신', '모니터'], description: '탁 트인 바다를 보며 업무에 집중할 수 있는 최고의 코워킹 스페이스입니다.' },
+  { id: '2', name: '제주 힐링 프라이빗 오피스', region: '제주도 제주시', price_per_night: 120000, capacity: 2, rating: 4.9, tags: ['자연', '프라이빗'], amenities: ['와이파이', '개인오피스', '주차장'], description: '제주의 맑은 공기와 함께하는 힐링 워케이션을 경험해보세요.' },
+  { id: '3', name: '여수 밤바다 코워킹 스페이스', region: '전라남도 여수시', price_per_night: 75000, capacity: 3, rating: 4.7, tags: ['야경', '힐링'], amenities: ['와이파이', '라운지', '루프탑'], description: '여수 밤바다의 낭만을 즐기며 워라밸을 실현할 수 있는 숙소입니다.' },
+  { id: '4', name: '경주 한옥 워크 하우스', region: '경상북도 경주시', price_per_night: 90000, capacity: 4, rating: 4.6, tags: ['한옥', '전통'], amenities: ['와이파이', '마당', '다도세트'], description: '고즈넉한 한옥에서 전통의 멋을 느끼며 여유롭게 업무를 진행하세요.' },
+  { id: '5', name: '부산 해운대 스마트 워크센터', region: '부산광역시 해운대구', price_per_night: 110000, capacity: 10, rating: 4.8, tags: ['스마트', '도심'], amenities: ['와이파이', '회의실', '프린터'], description: '해운대 중심에 위치한 최고급 시설의 스마트 워크센터입니다.' },
+  { id: '6', name: '남해 프라이빗 풀빌라 오피스', region: '경상남도 남해군', price_per_night: 150000, capacity: 6, rating: 5.0, tags: ['풀빌라', '럭셔리'], amenities: ['와이파이', '수영장', '바베큐'], description: '남해의 푸른 바다를 품은 럭셔리 풀빌라에서 완벽한 워케이션을.' }
+]
+
 export default function AccommodationsPage() {
   const [accommodations, setAccommodations] = useState<Accommodation[]>([])
   const [subsidies, setSubsidies]           = useState<SubsidyInfo[]>([])
@@ -66,7 +75,12 @@ export default function AccommodationsPage() {
     async function fetchAccommodations() {
       const { data, error } = await supabase.from('accommodations').select('*')
       if (error) console.error('[accommodations fetch error]', error)
-      if (data) setAccommodations(data)
+      
+      if (data && data.length > 0) {
+        setAccommodations(data)
+      } else {
+        setAccommodations(MOCK_ACCOMMODATIONS)
+      }
       setLoading(false)
     }
     supabase.from('subsidies').select('region, amount_per_person').then(({ data, error }) => {
