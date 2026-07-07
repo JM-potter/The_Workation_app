@@ -223,10 +223,10 @@ export default function MyPage() {
                   step: 4,
                   done: false,
                   icon: '🍅',
-                  title: '집중 모드 체험',
-                  desc: '할 일 선언 후 뽀모도로로 오늘의 알리바이를 획득하세요',
-                  href: '/focus',
-                  cta: '집중 모드 시작 →',
+                  title: '마이 워케이션 인증',
+                  desc: '전용 와이파이 근태 인증 및 업무 증빙 이미지를 업로드하세요',
+                  href: '/my-workation',
+                  cta: '근태 인증하기 →',
                 },
               ].map(s => (
                 <div key={s.step} className={`flex items-center gap-3 rounded-xl px-4 py-3 border transition-all ${
@@ -264,12 +264,12 @@ export default function MyPage() {
 
         {/* 퀵 액션 버튼 2개 */}
         <div className="grid grid-cols-2 gap-3 mb-6">
-          <Link href="/focus"
-            className="flex items-center gap-3 bg-gradient-to-r from-[#1e3a8a] to-[#7c3aed] rounded-2xl p-5 hover:opacity-90 transition-opacity group">
-            <span className="text-2xl">🍅</span>
+          <Link href="/my-workation"
+            className="flex items-center gap-3 bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] rounded-2xl p-5 hover:opacity-90 transition-opacity group">
+            <span className="text-2xl">📶</span>
             <div className="flex-1">
-              <div className="text-white font-black text-sm">집중 모드</div>
-              <div className="text-blue-200 text-xs mt-0.5">뽀모도로 · 알리바이 획득</div>
+              <div className="text-white font-black text-sm">마이 워케이션</div>
+              <div className="text-teal-200 text-xs mt-0.5">와이파이 근태 · 사진 증빙</div>
             </div>
             <span className="text-white/60 group-hover:text-white transition-colors">→</span>
           </Link>
@@ -326,10 +326,10 @@ export default function MyPage() {
                 {
                   step: '03',
                   icon: '🍅',
-                  title: '집중하고 즐기기',
-                  desc: '뽀모도로로 할 일을 끝내고 알리바이를 획득하면, 나머지 시간은 진짜 휴식이에요.',
-                  href: '/focus',
-                  cta: '집중 모드 체험',
+                  title: '근무 인증하고 쉬기',
+                  desc: '제휴 공간 와이파이로 출퇴근을 인증하고 업무 사진을 증빙하여 지원금 심사를 완료하세요.',
+                  href: '/my-workation',
+                  cta: '근태 인증 체험',
                   color: 'border-emerald-200 bg-emerald-50',
                   ctaColor: 'bg-emerald-500 hover:bg-emerald-600',
                 },

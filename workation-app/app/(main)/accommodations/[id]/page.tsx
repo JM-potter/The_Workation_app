@@ -33,6 +33,19 @@ type Subsidy = {
   provider: string
 }
 
+const DEFAULT_IMAGES: Record<string, string> = {
+  '1': 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1000&q=80',
+  '2': 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=1000&q=80',
+  '3': 'https://images.unsplash.com/photo-1582719478250-c89cae4db85b?w=1000&q=80',
+  '4': 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1000&q=80',
+  '5': 'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=1000&q=80',
+  '6': 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1000&q=80',
+}
+
+function getImageUrl(acc: { id: string; image_url?: string }) {
+  return DEFAULT_IMAGES[acc.id] || acc.image_url || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1000&q=80'
+}
+
 export default function AccommodationDetailPage() {
   const router = useRouter()
   const { id } = useParams()
@@ -93,11 +106,7 @@ export default function AccommodationDetailPage() {
           ← 숙소 목록으로
         </Link>
 
-        {/* 이미지 */}
-        {acc.image_url
-          ? <img src={acc.image_url} alt={acc.name} className="w-full h-72 object-cover rounded-2xl mb-6" />
-          : <div className="h-72 bg-white border border-[#E2E8F0] rounded-2xl flex items-center justify-center text-7xl mb-6">🏨</div>
-        }
+        <img src={getImageUrl(acc)} alt={acc.name} className="w-full h-72 object-cover rounded-2xl mb-6" />
 
         <div className="grid grid-cols-3 gap-6">
           {/* 왼쪽: 상세 정보 */}

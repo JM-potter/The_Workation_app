@@ -39,6 +39,13 @@ export default function FocusPage() {
   const [idleWarn,     setIdleWarn]     = useState(false)
   const [alibi,        setAlibi]        = useState(false)
 
+  // 상용화 연동 기능 시뮬레이션용 상태 추가
+  const [gpsCheckedIn, setGpsCheckedIn] = useState(false)
+  const [gpsLoading, setGpsLoading] = useState(false)
+  const [slackSync, setSlackSync] = useState(true)
+  const [slackTestTriggered, setSlackTestTriggered] = useState(false)
+  const [showPdfModal, setShowPdfModal] = useState(false)
+
   const intervalRef  = useRef<NodeJS.Timeout | null>(null)
   const idleRef      = useRef<NodeJS.Timeout | null>(null)
   const runningRef   = useRef(false)
@@ -390,6 +397,167 @@ export default function FocusPage() {
           </div>
         </div>
 
+        {/* 상용화 핵심 기술 시뮬레이터 (B2B/B2G) */}
+        <div className="bg-white border-2 border-slate-900 rounded-2xl p-6 mt-6 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)]">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-xl">🔌</span>
+            <h2 className="font-black text-lg text-slate-900">상용화 연동 기능 실시간 시뮬레이터 (B2B/B2G)</h2>
+            <span className="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-300 font-bold animate-pulse">
+              Interactive Mock
+            </span>
+          </div>
+          <p className="text-xs text-slate-500 mb-6">
+            B2B 기업 인사팀과 지자체가 신뢰 장벽 및 행정 복잡성을 극복하기 위해 플랫폼에 구축된 상용화 기술을 체험해보세요.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* GPS 지오펜싱 */}
+            <div className="border border-slate-200 rounded-xl p-4 bg-slate-50/50 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-black text-slate-400 uppercase">Geofencing & GPS</span>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                    gpsCheckedIn 
+                      ? 'bg-emerald-100 text-emerald-800 border-emerald-300' 
+                      : 'bg-amber-100 text-amber-800 border-amber-300'
+                  }`}>
+                    {gpsCheckedIn ? '출근 완료' : '출근 전'}
+                  </span>
+                </div>
+                <h3 className="font-bold text-sm text-slate-800 mb-2">📍 위치 기반 근무지 인증</h3>
+                <p className="text-xs text-slate-500 leading-relaxed mb-4">
+                  지정된 강릉 워케이션 센터 반경 50m 이내에 있을 경우에만 출근 체크 및 보조금 지원 혜택이 연동됩니다.
+                </p>
+                
+                <div className="bg-white border border-slate-200 rounded-lg p-3 text-xs mb-4">
+                  {gpsLoading ? (
+                    <div className="flex items-center justify-center gap-2 py-2">
+                      <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                      <span className="font-bold text-slate-600">위치 GPS 탐색 및 암호화 인증 중...</span>
+                    </div>
+                  ) : gpsCheckedIn ? (
+                    <div className="space-y-1">
+                      <div className="font-black text-emerald-600 flex items-center gap-1">
+                        <span>●</span> 인증 완료: 강릉 송정 센터 (반경 22m 이내)
+                      </div>
+                      <div className="text-[10px] text-slate-400">인증 시간: {new Date().toLocaleTimeString()}</div>
+                    </div>
+                  ) : (
+                    <div className="font-bold text-amber-600 flex items-center gap-1 py-1">
+                      <span>●</span> 인증 보류: 코워킹 스페이스 반경 외 (출근 인증이 필요합니다)
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  if (gpsCheckedIn) {
+                    setGpsCheckedIn(false)
+                  } else {
+                    setGpsLoading(true)
+                    setTimeout(() => {
+                      setGpsLoading(false)
+                      setGpsCheckedIn(true)
+                    }, 1200)
+                  }
+                }}
+                disabled={gpsLoading}
+                className={`w-full py-2 text-xs font-black rounded-lg border-2 border-slate-900 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] active:shadow-none transition-all ${
+                  gpsCheckedIn
+                    ? 'bg-red-50 text-red-600 hover:bg-red-100'
+                    : 'bg-white text-slate-800 hover:bg-slate-50'
+                }`}
+              >
+                {gpsCheckedIn ? '출근 인증 해제' : '근무지 GPS 인증하기'}
+              </button>
+            </div>
+
+            {/* Slack 상태 동기화 */}
+            <div className="border border-slate-200 rounded-xl p-4 bg-slate-50/50 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-black text-slate-400 uppercase">SaaS API Integration</span>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={slackSync}
+                      onChange={(e) => setSlackSync(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-7 h-4 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-blue-600"></div>
+                    <span className="ml-1 text-[10px] font-bold text-slate-500">연동</span>
+                  </label>
+                </div>
+                <h3 className="font-bold text-sm text-slate-800 mb-2">🔌 Slack 메신저 상태 실시간 연동</h3>
+                <p className="text-xs text-slate-500 leading-relaxed mb-4">
+                  뽀모도로 몰입 타이머 상태를 슬랙에 자동 동기화하여 팀원들에게 현재 몰입 상태를 공유합니다.
+                </p>
+
+                <div className="bg-white border border-slate-200 rounded-lg p-3 text-xs mb-4">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center font-bold text-indigo-700 text-sm">
+                      👤
+                    </div>
+                    <div>
+                      <div className="font-bold text-slate-800">이지은 (마케팅 TF)</div>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        {slackSync && running ? (
+                          <span className="text-[10px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-black">
+                            🍅 집중근무중 (방해금지)
+                          </span>
+                        ) : slackSync && phase === 'break' && running ? (
+                          <span className="text-[10px] bg-emerald-100 text-emerald-600 px-1.5 py-0.5 rounded font-black">
+                            ☕ 휴식중
+                          </span>
+                        ) : (
+                          <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-bold">
+                            💬 온라인
+                          </span>
+                        )}
+                        <span className="text-[9px] text-slate-400">
+                          {slackSync && running ? '“강릉 센터에서 몰입 프로젝트 진행 중”' : '“워케이션 원격 근무 중”'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <button
+                  onClick={() => {
+                    setSlackTestTriggered(true)
+                    setTimeout(() => setSlackTestTriggered(false), 5000)
+                  }}
+                  className="w-full py-2 text-xs font-black bg-white hover:bg-slate-50 text-slate-800 rounded-lg border-2 border-slate-900 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] active:shadow-none transition-all"
+                >
+                  Slack 채널 모의 알림 테스트
+                </button>
+                {slackTestTriggered && (
+                  <div className="bg-indigo-950 text-white rounded-lg p-2.5 text-[10px] font-mono leading-relaxed border border-indigo-800 animate-fade-in-down">
+                    <span className="text-indigo-400">#workation-feed</span> 🤖봇: <strong>[이지은]</strong>님이 강릉 송정 센터에서 1회차 뽀모도로 몰입 세션을 성공적으로 달성했습니다! 🍅
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* 지자체 보조금 확인서 */}
+          <div className="mt-6 border border-slate-200 rounded-xl p-4 bg-emerald-50/20 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="space-y-1">
+              <h4 className="font-bold text-sm text-slate-800">🏛️ 지자체 제출용 정량 근무 증빙서 자동 생성</h4>
+              <p className="text-xs text-slate-500">오늘 달성한 업무 목록과 집중 세션 데이터가 공인 지자체 양식의 증빙 문서로 즉시 출력됩니다.</p>
+            </div>
+            <button
+              onClick={() => setShowPdfModal(true)}
+              className="w-full sm:w-auto px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-lg border-2 border-slate-900 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] active:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all shrink-0"
+            >
+              📄 근무 증빙서(PDF) 발행
+            </button>
+          </div>
+        </div>
+
         {/* 추가 예정 업무 기능 (로드맵) */}
         <div className="bg-white border border-[#E2E8F0] rounded-2xl p-6 mt-6">
           <div className="flex items-center gap-2 mb-2">
@@ -449,6 +617,127 @@ export default function FocusPage() {
         </div>
 
       </div>
+
+      {/* 지자체 보조금 연동 근무 증빙 확인서 (인쇄 미리보기 모달) */}
+      {showPdfModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white border-4 border-slate-900 rounded-2xl max-w-2xl w-full p-6 shadow-[8px_8px_0px_0px_rgba(15,23,42,1)] max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4 mb-4">
+              <h3 className="text-xl font-black text-slate-900">지자체 보조금 증빙 근무 확인서 (미리보기)</h3>
+              <button onClick={() => setShowPdfModal(false)} className="text-slate-500 hover:text-slate-900 font-black text-lg">✕</button>
+            </div>
+
+            {/* 확인서 내용 */}
+            <div id="print-area" className="border-2 border-slate-300 p-8 font-sans text-xs bg-white text-slate-900 space-y-6 relative overflow-hidden">
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-slate-100/50 font-black text-[60px] select-none pointer-events-none rotate-12">
+                THE WORKATION
+              </div>
+
+              <div className="text-center space-y-2 relative z-10">
+                <h2 className="text-xl font-black tracking-widest text-slate-950">워케이션 근무 활동 인증서</h2>
+                <p className="text-[10px] text-slate-400 font-bold">인증코드: {`WK-AUTH-${new Date().toISOString().slice(0,10).replace(/-/g,'')}`}</p>
+              </div>
+
+              <div className="space-y-2 relative z-10 border-t border-b border-slate-900 py-4 text-slate-800">
+                <div className="grid grid-cols-2 gap-4 leading-relaxed">
+                  <div><strong>피고용자(임직원):</strong> 이지은 (개발 마케팅 TF)</div>
+                  <div><strong>소속 회사:</strong> 주식회사 테스트 코리아</div>
+                  <div><strong>근무 장소:</strong> 강릉 송정 워케이션 센터 (코워킹 스페이스)</div>
+                  <div><strong>인증 정보:</strong> GPS 지오펜싱 인증 완료 ({gpsCheckedIn ? '반경 22m 내' : '출근전 모드'})</div>
+                  <div><strong>기준 일자:</strong> {new Date().toLocaleDateString('ko-KR')}</div>
+                  <div><strong>총 몰입 시간:</strong> {totalFocusMins}분 ({pomoDone} 세션)</div>
+                </div>
+              </div>
+
+              <div className="space-y-3 relative z-10">
+                <h3 className="font-bold text-sm text-slate-800">일일 마이크로 목표 달성 내역</h3>
+                {tasks.length === 0 ? (
+                  <p className="text-slate-400 italic">완료되거나 등록된 목표가 없습니다.</p>
+                ) : (
+                  <table className="w-full text-[10px] border-collapse border border-slate-300">
+                    <thead>
+                      <tr className="bg-slate-100 text-slate-700">
+                        <th className="border border-slate-300 px-2 py-1 text-left">세부 목표명</th>
+                        <th className="border border-slate-300 px-2 py-1 text-center">진행시간</th>
+                        <th className="border border-slate-300 px-2 py-1 text-center">달성 여부</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {tasks.map(t => (
+                        <tr key={t.id} className="text-slate-600">
+                          <td className="border border-slate-300 px-2 py-1.5">{t.title}</td>
+                          <td className="border border-slate-300 px-2 py-1.5 text-center font-mono">{Math.floor(t.focusSecs / 60)}분</td>
+                          <td className="border border-slate-300 px-2 py-1.5 text-center font-bold">
+                            {t.done ? (
+                              <span className="text-emerald-600">완료 (100%)</span>
+                            ) : (
+                              <span className="text-amber-600">진행 중</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+
+              <div className="text-center pt-8 space-y-4 relative z-10">
+                <p className="text-[11px] leading-relaxed max-w-md mx-auto text-slate-600">
+                  위 임직원은 더 워케이션 플랫폼의 실시간 지오펜싱 GPS 위치 검증 시스템 및 자율 성과 증빙(알리바이 대시보드)을 통해 근무지 내 이탈 없이 집중 근무를 수행하였음을 공식 증명하며, 지자체 워케이션 활성화 보조금 집행 규정을 충족함을 인증합니다.
+                </p>
+                <div className="pt-4 flex justify-center items-center gap-1">
+                  <span className="font-black text-sm text-slate-800">{new Date().toLocaleDateString('ko-KR')}</span>
+                  <div className="w-12 h-12 rounded-full border-2 border-red-500 flex items-center justify-center text-[10px] font-black text-red-500 rotate-12 shrink-0">
+                    더 워케이션<br />직인생략
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3 justify-end mt-6">
+              <button
+                onClick={() => {
+                  const printContent = document.getElementById('print-area')?.innerHTML
+                  if (printContent) {
+                    const printWindow = window.open('', '', 'width=800,height=600')
+                    printWindow?.document.write(`
+                      <html>
+                        <head>
+                          <title>워케이션 근무 활동 인증서</title>
+                          <style>
+                            body { font-family: sans-serif; padding: 40px; color: #333; }
+                            .text-center { text-align: center; }
+                            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                            th, td { border: 1px solid #ddd; padding: 8px; font-size: 12px; }
+                            .border-t { border-top: 1px solid #000; margin-top: 20px; padding-top: 20px; }
+                            .text-emerald-600 { color: #059669; font-weight: bold; }
+                            .text-amber-600 { color: #d97706; font-weight: bold; }
+                          </style>
+                        </head>
+                        <body>
+                          ${printContent}
+                        </body>
+                      </html>
+                    `)
+                    printWindow?.document.close()
+                    printWindow?.print()
+                  }
+                }}
+                className="px-5 py-2.5 bg-slate-950 text-white font-black text-xs rounded-lg border-2 border-slate-950 hover:bg-slate-800 transition-colors animate-pulse"
+              >
+                🖨️ 인쇄 / PDF 다운로드
+              </button>
+              <button
+                onClick={() => setShowPdfModal(false)}
+                className="px-5 py-2.5 border-2 border-slate-900 bg-white hover:bg-slate-50 font-bold text-xs rounded-lg transition-colors"
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Footer />
     </div>
   )

@@ -23,6 +23,19 @@ type SubsidyInfo = {
   amount_per_person: number
 }
 
+const DEFAULT_IMAGES: Record<string, string> = {
+  '1': 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80',
+  '2': 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=600&q=80',
+  '3': 'https://images.unsplash.com/photo-1582719478250-c89cae4db85b?w=600&q=80',
+  '4': 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=600&q=80',
+  '5': 'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=600&q=80',
+  '6': 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&q=80',
+}
+
+function getImageUrl(acc: { id: string; image_url?: string }) {
+  return DEFAULT_IMAGES[acc.id] || acc.image_url || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80'
+}
+
 const LOCATIONS = ['전체', '경기/인천', '강원도', '제주도', '전라남도', '전라북도']
 
 const LOCATION_ALIASES: Record<string, string[]> = {
@@ -281,10 +294,7 @@ export default function AccommodationsPage() {
             {filtered.map(acc => (
               <Link key={acc.id} href={`/accommodations/${acc.id}`}>
                 <div className="bg-white border border-[#E2E8F0] rounded-xl overflow-hidden hover:border-blue-500/50 transition-all group">
-                  {acc.image_url
-                    ? <img src={acc.image_url} alt={acc.name} className="h-44 w-full object-cover" />
-                    : <div className="h-44 bg-[#F1F5F9] flex items-center justify-center text-4xl">🏨</div>
-                  }
+                  <img src={getImageUrl(acc)} alt={acc.name} className="h-44 w-full object-cover" />
                   <div className="p-4">
                     <h3 className="font-semibold text-sm leading-snug mb-1">{acc.name}</h3>
                     <p className="text-xs text-[#94A3B8] mb-2">📍 {acc.region}</p>
