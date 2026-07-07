@@ -3,14 +3,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Header from '@/components/ui/Header'
 import Footer from '@/components/ui/Footer'
-import Button from '@/components/ui/Button'
 import { supabase, BYPASS_AUTH } from '@/lib/supabase'
-
-type Task = {
-  id: string
-  title: string
-  done: boolean
-}
 
 type ProofDoc = {
   id: string
@@ -22,8 +15,6 @@ type ProofDoc = {
 export default function MyWorkationPage() {
   const [userId, setUserId] = useState<string | null>(null)
   const [userName, setUserName] = useState('')
-  const [tasks, setTasks] = useState<Task[]>([])
-  const [newTitle, setNewTitle] = useState('')
   
   // 근태 상태
   const [isConnected, setIsConnected] = useState(false)
@@ -34,6 +25,14 @@ export default function MyWorkationPage() {
   // 증빙 업로드 상태
   const [proofs, setProofs] = useState<ProofDoc[]>([])
   const [uploading, setUploading] = useState(false)
+
+  // 업무 툴 사용량 연동 (Mock)
+  const [tools] = useState([
+    { id: 'slack', name: 'Slack', icon: '💬', usageMinutes: 145, lastActive: '방금 전', status: 'active' },
+    { id: 'notion', name: 'Notion', icon: '📝', usageMinutes: 82, lastActive: '10분 전', status: 'idle' },
+    { id: 'figma', name: 'Figma', icon: '🎨', usageMinutes: 210, lastActive: '방금 전', status: 'active' },
+    { id: 'github', name: 'GitHub', icon: '🐙', usageMinutes: 45, lastActive: '1시간 전', status: 'offline' }
+  ])
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -64,36 +63,7 @@ export default function MyWorkationPage() {
         setProofs(dData as any)
       }
     })
-
-    // 로컬 스토리지에서 오늘 목표 로드
-    const today = new Date().toISOString().slice(0, 10)
-    const saved = localStorage.getItem(`wk-goals-${today}`)
-    if (saved) {
-      try { setTasks(JSON.parse(saved)) } catch {}
-    }
   }, [])
-
-  // 오늘 목표 저장
-  const saveGoals = (newTasks: Task[]) => {
-    setTasks(newTasks)
-    const today = new Date().toISOString().slice(0, 10)
-    localStorage.setItem(`wk-goals-${today}`, JSON.stringify(newTasks))
-  }
-
-  const addTask = () => {
-    if (!newTitle.trim()) return
-    const t: Task = { id: Date.now().toString(), title: newTitle.trim(), done: false }
-    saveGoals([...tasks, t])
-    setNewTitle('')
-  }
-
-  const toggleDone = (id: string) => {
-    saveGoals(tasks.map(t => t.id === id ? { ...t, done: !t.done } : t))
-  }
-
-  const removeTask = (id: string) => {
-    saveGoals(tasks.filter(t => t.id !== id))
-  }
 
   // 근무 시작 / 종료 처리
   const handleCheckIn = () => {
@@ -151,8 +121,11 @@ export default function MyWorkationPage() {
     setUploading(false)
   }
 
-  const doneCount = tasks.filter(t => t.done).length
-  const progressPct = tasks.length > 0 ? Math.round((doneCount / tasks.length) * 100) : 0
+  const formatMinutes = (mins: number) => {
+    const h = Math.floor(mins / 60)
+    const m = mins % 60
+    return h > 0 ? `${h}시간 ${m}분` : `${m}분`
+  }
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
@@ -317,78 +290,45 @@ export default function MyWorkationPage() {
           )}
         </div>
 
-        {/* 📋 3. 오늘의 목표 선언 */}
+        {/* 📊 3. 업무 툴 연동 현황 */}
         <div className="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-sm">
-          <div className="flex items-center gap-2 mb-1">
-            <h2 className="font-black text-base text-[#0F172A]">📋 오늘의 업무 목표</h2>
-            <span className="text-xs bg-blue-500/10 text-blue-600 px-2 py-0.5 rounded-full border border-blue-500/20 font-bold">
-              {new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' })}
+          <div className="flex items-center justify-between mb-1">
+            <h2 className="font-black text-base text-[#0F172A]">📊 실시간 업무 툴 연동 현황</h2>
+            <span className="text-[10px] bg-purple-500/10 text-purple-600 px-2 py-0.5 rounded-full border border-purple-500/20 font-bold">
+              자동 트래킹 중
             </span>
           </div>
-          <p className="text-xs text-[#94A3B8] mb-4">오늘 완료할 핵심 마이크로 결과물을 등록해주세요.</p>
-
-          {/* 입력창 */}
-          <div className="flex gap-2 mb-4">
-            <input
-              value={newTitle}
-              onChange={e => setNewTitle(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && addTask()}
-              placeholder="예: 강릉 코워킹 오피스에서 기획안 2p 작성"
-              className="flex-1 text-sm border border-[#E2E8F0] rounded-xl px-4 py-2.5 outline-none focus:border-blue-400 transition-colors text-slate-800"
-            />
-            <button onClick={addTask}
-              className="px-4 py-2.5 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold rounded-xl transition-colors">
-              + 추가
-            </button>
-          </div>
-
-          {/* 목표 리스트 */}
-          {tasks.length === 0 ? (
-            <div className="text-center py-6 text-[#94A3B8] text-xs">
-              선언된 오늘 업무 목표가 없습니다.
-            </div>
-          ) : (
-            <div className="flex flex-col gap-2">
-              {tasks.map(task => (
-                <div key={task.id}
-                  className={`flex items-center gap-3 rounded-xl px-4 py-3 border transition-all ${
-                    task.done
-                      ? 'bg-emerald-500/5 border-emerald-500/20'
-                      : 'bg-[#F8FAFC] border-[#E2E8F0]'
-                  }`}>
-                  <button onClick={() => toggleDone(task.id)}
-                    className={`w-5 h-5 rounded-full border-2 shrink-0 flex items-center justify-center transition-all ${
-                      task.done ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-[#CBD5E1] hover:border-blue-400'
-                    }`}>
-                    {task.done && <span className="text-xs">✓</span>}
-                  </button>
-
-                  <span className={`flex-1 text-sm ${task.done ? 'line-through text-[#94A3B8]' : 'text-[#0F172A]'}`}>
-                    {task.title}
-                  </span>
-
-                  <button onClick={() => removeTask(task.id)}
-                    className="shrink-0 text-[#CBD5E1] hover:text-red-400 transition-colors text-lg leading-none">
-                    ×
-                  </button>
+          <p className="text-xs text-[#94A3B8] mb-5">사내 협업 툴(Slack, Figma 등) 접속 및 활동 내역을 기반으로 자동 증빙됩니다.</p>
+          
+          <div className="grid gap-3">
+            {tools.map(tool => (
+              <div key={tool.id} className="flex items-center justify-between bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white rounded-lg border border-[#E2E8F0] flex items-center justify-center text-xl shadow-sm">
+                    {tool.icon}
+                  </div>
+                  <div>
+                    <div className="font-bold text-sm text-[#0F172A] flex items-center gap-2">
+                      {tool.name}
+                      {tool.status === 'active' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />}
+                    </div>
+                    <div className="text-[10px] text-[#94A3B8] mt-0.5">마지막 활동: {tool.lastActive}</div>
+                  </div>
                 </div>
-              ))}
-            </div>
-          )}
-
-          {/* 달성도 프로그레스 */}
-          {tasks.length > 0 && (
-            <div className="mt-4">
-              <div className="flex justify-between text-xs text-[#94A3B8] mb-1.5">
-                <span>오늘의 목표 완료</span>
-                <span className="font-bold text-[#475569]">{doneCount}/{tasks.length} ({progressPct}%)</span>
+                <div className="text-right">
+                  <div className="text-sm font-black text-[#0F172A]">{formatMinutes(tool.usageMinutes)}</div>
+                  <div className="text-[10px] text-[#94A3B8]">오늘 누적 사용량</div>
+                </div>
               </div>
-              <div className="h-2 bg-[#F1F5F9] rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full transition-all duration-500"
-                  style={{ width: `${progressPct}%` }} />
-              </div>
+            ))}
+          </div>
+          
+          <div className="mt-5 p-3 bg-blue-50/50 rounded-xl border border-blue-100 flex items-start gap-2">
+            <span className="text-lg">💡</span>
+            <div className="text-[11px] text-[#64748B] leading-relaxed">
+              연동된 업무 툴에서 발생한 활성 기록(키보드 입력, 페이지 이동, 멘션 등)을 합산하여 <strong>워케이션 성과 증빙 보고서</strong>에 자동 반영됩니다.
             </div>
-          )}
+          </div>
         </div>
 
       </div>
