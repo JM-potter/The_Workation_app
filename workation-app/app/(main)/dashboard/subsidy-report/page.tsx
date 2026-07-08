@@ -79,10 +79,12 @@ function SubsidyReportContent() {
           <div className="border border-slate-300 p-4 rounded bg-slate-50">
             <p className="text-xs text-slate-600 mb-3 font-medium">※ 지자체 관내 숙박시설 이용 내역을 증빙합니다.</p>
             <div className="flex gap-4 h-64">
-              <div className="w-1/2 bg-white border border-slate-200 border-dashed rounded flex flex-col items-center justify-center text-slate-400">
-                <span className="text-3xl mb-2">🧾</span>
-                <span className="text-sm font-bold">카드 결제 매출전표</span>
-                <span className="text-xs mt-1">(승인번호: 82910384)</span>
+              <div className="w-1/2 bg-white border border-slate-200 rounded overflow-hidden relative group">
+                <img src="/mockups/receipt.png" alt="카드 결제 매출전표" className="w-full h-full object-cover" />
+                <div className="absolute bottom-2 left-2 right-2 bg-white/90 backdrop-blur text-slate-800 text-xs px-2 py-1 rounded border border-slate-200 shadow-sm flex justify-between">
+                  <span className="font-bold">카드 결제 매출전표</span>
+                  <span>승인: 82910384</span>
+                </div>
               </div>
               <div className="w-1/2 bg-white border border-slate-200 border-dashed rounded flex flex-col items-center justify-center text-slate-400">
                 <span className="text-3xl mb-2">🏨</span>
@@ -100,19 +102,16 @@ function SubsidyReportContent() {
             <p className="text-xs text-slate-600 mb-3 font-medium">※ 관내 워케이션 센터/스마트워크센터에서 정상적으로 업무를 수행하였음을 증빙합니다.</p>
             <div className="flex gap-4 h-64">
               <div className="w-1/2 bg-slate-200 rounded overflow-hidden relative">
-                {/* Placeholder Image for Work Photo */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-500 bg-slate-200">
-                  <span className="text-4xl mb-2">💻</span>
-                  <span className="text-sm font-bold">센터 내 업무 사진 1</span>
-                  <span className="text-[10px] mt-1 bg-black/40 text-white px-2 py-0.5 rounded">2026. 07. 10 14:22 촬영</span>
+                <img src="/mockups/coworking.png" alt="업무 수행 증빙" className="w-full h-full object-cover" />
+                <div className="absolute top-2 left-2 bg-black/60 text-white text-[10px] px-2 py-1 rounded font-mono shadow-sm">
+                  2026-07-10 14:22:15<br/>
+                  LAT 37.75185 / LON 128.87605
                 </div>
               </div>
-              <div className="w-1/2 bg-slate-200 rounded overflow-hidden relative">
-                {/* Placeholder Image for Work Photo */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-500 bg-slate-200">
+              <div className="w-1/2 bg-slate-200 rounded overflow-hidden relative border border-slate-300 border-dashed">
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 bg-slate-50">
                   <span className="text-4xl mb-2">📸</span>
-                  <span className="text-sm font-bold">센터 내 업무 사진 2</span>
-                  <span className="text-[10px] mt-1 bg-black/40 text-white px-2 py-0.5 rounded">2026. 07. 11 10:15 촬영</span>
+                  <span className="text-sm font-bold">추가 증빙 사진 (선택)</span>
                 </div>
               </div>
             </div>
@@ -124,17 +123,25 @@ function SubsidyReportContent() {
           <p className="mb-8">위와 같이 워케이션 프로그램에 성실히 참여하였으며, 제반 증빙 서류를 첨부하여<br/>지원금 지급을 정히 신청(보고)합니다.</p>
           <p className="text-base mb-8">2026년 &nbsp;&nbsp;&nbsp; 월 &nbsp;&nbsp;&nbsp; 일</p>
           
-          <div className="flex justify-center gap-20 mt-8">
-            <div className="text-right">
+          <div className="flex justify-center gap-20 mt-8 relative">
+            <div className="text-right z-10 relative">
               <span className="inline-block w-24 text-left">참 여 자 : </span>
-              <span className="inline-block w-32 border-b border-slate-800 text-center">{userName.split(' ')[0]}</span>
+              <span className="inline-block w-32 border-b border-slate-800 text-center relative">
+                {userName.split(' ')[0]}
+                {/* 사인 이미지 대체 - 손글씨 폰트 느낌 */}
+                <span className="absolute -top-3 right-0 transform -rotate-12 text-xl font-medium text-slate-700 font-serif opacity-80">{userName.split(' ')[0]}</span>
+              </span>
               <span className="ml-2">(서명)</span>
             </div>
           </div>
-          <div className="flex justify-center gap-20 mt-6">
-            <div className="text-right">
+          <div className="flex justify-center gap-20 mt-6 relative">
+            <div className="text-right z-10 relative">
               <span className="inline-block w-24 text-left">기업 대표자 : </span>
-              <span className="inline-block w-32 border-b border-slate-800 text-center">홍 길 동</span>
+              <span className="inline-block w-32 border-b border-slate-800 text-center relative">
+                홍 길 동
+                {/* 도장 이미지 */}
+                <img src="/mockups/seal.png" alt="도장" className="absolute -top-4 right-2 w-12 h-12 object-contain mix-blend-multiply opacity-90 transform rotate-12" style={{ filter: 'contrast(1.2)' }} />
+              </span>
               <span className="ml-2">(직인)</span>
             </div>
           </div>
