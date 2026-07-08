@@ -128,7 +128,14 @@ export default function DashboardPage() {
                           <span>⚠️ 중복 수급 불가</span>
                         </div>
                       ) : (
-                        <div className="font-black text-emerald-500">+{u.amount.toLocaleString()}원</div>
+                        <div className="flex flex-col items-end gap-1.5">
+                          <div className="font-black text-emerald-500">+{u.amount.toLocaleString()}원</div>
+                          <Link href={`/dashboard/subsidy-report?user=${encodeURIComponent(u.userName)}&subsidy=${encodeURIComponent(u.subsidyName)}&region=${encodeURIComponent(u.region)}&amount=${u.amount}`}>
+                            <button className="text-[10px] bg-slate-800 hover:bg-slate-700 text-white font-bold px-2 py-1 rounded shadow-sm transition-colors flex items-center gap-1">
+                              <span>🖨️</span> 증빙 서류 출력
+                            </button>
+                          </Link>
+                        </div>
                       )}
                     </td>
                   </tr>
