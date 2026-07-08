@@ -53,6 +53,53 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* All-in-One 공문서 자동화 (Auto-Docs) */}
+        <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-8 mb-8 shadow-lg relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/20 blur-3xl rounded-full -translate-y-1/2 translate-x-1/2" />
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full text-xs font-black border border-blue-400/30">Auto-Docs</span>
+              <span className="text-white/60 text-sm font-medium">서류 작업 시간 0시간, 지자체 양식 100% 자동 변환</span>
+            </div>
+            <h2 className="text-2xl font-black text-white mb-6">신청부터 증빙까지, 올인원 공문서 자동화</h2>
+            
+            <div className="grid grid-cols-2 gap-5">
+              {/* 사전 신청 자동화 버튼 */}
+              <div 
+                className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl p-6 transition-colors cursor-pointer group"
+                onClick={() => alert('✅ 사전 참가 신청서 및 증빙 서류(사업자등록증, 재직증명서)가 지자체 담당자에게 자동 발송되었습니다.')}
+              >
+                <div className="flex justify-between items-start mb-4">
+                  <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                    📝
+                  </div>
+                  <span className="text-blue-300 text-sm font-bold group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">원클릭 발송 →</span>
+                </div>
+                <h3 className="text-lg font-black text-white mb-2">사전 참가 신청 (자동화)</h3>
+                <p className="text-sm text-slate-300 leading-relaxed">
+                  직원 예약 즉시 B2B 연동된 사업자등록증 및 재직증명서 취합 완료. 해당 지자체 양식에 맞춘 <strong>'참가 신청서'를 원클릭 전송</strong>합니다.
+                </p>
+              </div>
+
+              {/* 사후 증빙 자동화 버튼 */}
+              <div className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl p-6 transition-colors cursor-pointer group">
+                <Link href="/dashboard/subsidy-report" className="block w-full h-full">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                      🖨️
+                    </div>
+                    <span className="text-emerald-300 text-sm font-bold group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">결과보고서 출력 →</span>
+                  </div>
+                  <h3 className="text-lg font-black text-white mb-2">사후 증빙 결과보고서 (자동화)</h3>
+                  <p className="text-sm text-slate-300 leading-relaxed">
+                    결제 영수증 내역과 현장 Wi-Fi 접속 로그 결합. 지자체가 요구하는 <strong>'결과 보고서 양식(PDF)'으로 100% 렌더링</strong>합니다.
+                  </p>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* 요약 카드 4개 */}
         <div className="grid grid-cols-4 gap-4 mb-8">
           {[
