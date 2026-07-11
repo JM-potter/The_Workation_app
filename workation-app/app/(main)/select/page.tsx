@@ -94,30 +94,30 @@ export default function EmployeeSelectPage() {
             </div>
           </Link>
 
-          {/* 카드 2: 업무 집중 툴 */}
-          <Link href="/focus" className="group">
-            <div className="h-full bg-white border border-[#E2E8F0] hover:border-rose-400 hover:shadow-[0_10px_30px_rgba(244,63,94,0.08)] rounded-2xl p-8 transition-all duration-300 flex flex-col justify-between transform hover:-translate-y-1">
+          {/* 카드 2: 실시간 업무 측정 */}
+          <Link href="/my-workation" className="group">
+            <div className="h-full bg-white border border-[#E2E8F0] hover:border-purple-400 hover:shadow-[0_10px_30px_rgba(168,85,247,0.08)] rounded-2xl p-8 transition-all duration-300 flex flex-col justify-between transform hover:-translate-y-1">
               <div>
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-rose-500 flex items-center justify-center text-3xl mb-6 shadow-md shadow-rose-500/10 group-hover:scale-110 transition-transform duration-300">
-                  🍅
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center text-3xl mb-6 shadow-md shadow-purple-500/10 group-hover:scale-110 transition-transform duration-300">
+                  📈
                 </div>
                 <div className="flex items-center gap-2 mb-3">
-                  <h2 className="text-xl font-bold text-[#0F172A] group-hover:text-rose-600 transition-colors">
-                    마이 업무 툴 (집중 & 알리바이)
+                  <h2 className="text-xl font-bold text-[#0F172A] group-hover:text-purple-600 transition-colors">
+                    실시간 업무 측정 및 증빙
                   </h2>
-                  <span className="text-[10px] font-bold bg-rose-500/10 text-rose-600 px-2 py-0.5 rounded">
-                    Focus Mode
+                  <span className="text-[10px] font-bold bg-purple-500/10 text-purple-600 px-2 py-0.5 rounded">
+                    Work Measurement
                   </span>
                 </div>
                 <p className="text-sm text-[#475569] leading-relaxed mb-6">
-                  오늘의 마이크로 목표를 선언하고 뽀모도로 타이머로 딥워크 시간을 기록하여, 신뢰할 수 있는 근무 알리바이를 증명합니다.
+                  SaaS API(Slack, GitHub 등) 연동을 통해 비침해적으로 업무 성과를 측정하고 지자체 보조금 심사용 근태를 증빙합니다.
                 </p>
               </div>
               <div className="pt-4 border-t border-[#F1F5F9] flex items-center justify-between">
-                <span className="text-sm font-semibold text-[#475569] group-hover:text-rose-600 transition-colors">
-                  업무 집중 모드 시작
+                <span className="text-sm font-semibold text-[#475569] group-hover:text-purple-600 transition-colors">
+                  업무 측정 대시보드 입장
                 </span>
-                <span className="text-sm transform group-hover:translate-x-1.5 transition-transform duration-300 text-rose-500">
+                <span className="text-sm transform group-hover:translate-x-1.5 transition-transform duration-300 text-purple-500">
                   →
                 </span>
               </div>
