@@ -27,12 +27,38 @@ export default function MyWorkationPage() {
   const [uploading, setUploading] = useState(false)
 
   // 업무 툴 사용량 연동 (Mock)
-  const [tools] = useState([
-    { id: 'slack', name: 'Slack', icon: '💬', usageMinutes: 145, lastActive: '방금 전', status: 'active' },
-    { id: 'notion', name: 'Notion', icon: '📝', usageMinutes: 82, lastActive: '10분 전', status: 'idle' },
-    { id: 'figma', name: 'Figma', icon: '🎨', usageMinutes: 210, lastActive: '방금 전', status: 'active' },
-    { id: 'github', name: 'GitHub', icon: '🐙', usageMinutes: 45, lastActive: '1시간 전', status: 'offline' }
+  const [tools, setTools] = useState([
+    { id: 'slack', name: 'Slack', icon: '💬', usageMinutes: 0, lastActive: '-', status: 'disconnected', logs: [] as string[] },
+    { id: 'github', name: 'GitHub', icon: '🐙', usageMinutes: 0, lastActive: '-', status: 'disconnected', logs: [] as string[] }
   ])
+  const [report, setReport] = useState<string | null>(null)
+  const [reportGenerating, setReportGenerating] = useState(false)
+
+  const handleConnectTool = (id: string) => {
+    setTools(prev => prev.map(t => t.id === id ? { ...t, status: 'connecting' } : t))
+    setTimeout(() => {
+      setTools(prev => prev.map(t => {
+        if (t.id === id) {
+          if (id === 'slack') {
+            return { ...t, status: 'connected', usageMinutes: 145, lastActive: '방금 전', logs: ['[10:00] 디자인팀 채널에 메시지 전송', '[11:30] 기획 회의 스레드 응답', '[14:15] 새로운 팀원 환영 인사'] }
+          }
+          if (id === 'github') {
+            return { ...t, status: 'connected', usageMinutes: 210, lastActive: '방금 전', logs: ['[09:30] feat/dashboard 브랜치 커밋', '[13:00] PR #42 리뷰 완료', '[15:45] 버그 픽스 커밋 푸시'] }
+          }
+        }
+        return t
+      }))
+    }, 1500)
+  }
+
+  const handleGenerateReport = () => {
+    setReportGenerating(true)
+    setReport(null)
+    setTimeout(() => {
+      setReportGenerating(false)
+      setReport("오늘 " + (userName || "직원") + "님은 Slack을 통해 디자인 및 기획팀과 3건의 주요 커뮤니케이션을 진행하였으며(145분 활성), GitHub에서 대시보드 기능 구현 및 코드 리뷰 등 총 3건의 주요 개발 기여(210분 활성)를 하였습니다. 총 355분의 높은 딥워크(Deep Work) 시간을 기록하여 매우 훌륭한 업무 몰입도를 보였습니다.")
+    }, 2000)
+  }
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -295,39 +321,95 @@ export default function MyWorkationPage() {
           <div className="flex items-center justify-between mb-1">
             <h2 className="font-black text-base text-[#0F172A]">📊 실시간 업무 툴 연동 현황</h2>
             <span className="text-[10px] bg-purple-500/10 text-purple-600 px-2 py-0.5 rounded-full border border-purple-500/20 font-bold">
-              자동 트래킹 중
+              자율 성과 증빙
             </span>
           </div>
-          <p className="text-xs text-[#94A3B8] mb-5">사내 협업 툴(Slack, Figma 등) 접속 및 활동 내역을 기반으로 자동 증빙됩니다.</p>
+          <p className="text-xs text-[#94A3B8] mb-5">업무 툴(Slack, GitHub)을 연동하여 나의 성과를 비침해적으로 증명하세요.</p>
           
-          <div className="grid gap-3">
+          <div className="grid gap-3 mb-5">
             {tools.map(tool => (
-              <div key={tool.id} className="flex items-center justify-between bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white rounded-lg border border-[#E2E8F0] flex items-center justify-center text-xl shadow-sm">
-                    {tool.icon}
+              <div key={tool.id} className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-4 transition-all">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white rounded-lg border border-[#E2E8F0] flex items-center justify-center text-xl shadow-sm">
+                      {tool.icon}
+                    </div>
+                    <div>
+                      <div className="font-bold text-sm text-[#0F172A] flex items-center gap-2">
+                        {tool.name}
+                        {tool.status === 'connected' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />}
+                      </div>
+                      <div className="text-[10px] text-[#94A3B8] mt-0.5">
+                        {tool.status === 'disconnected' ? '연동되지 않음' : tool.status === 'connecting' ? '연동 중...' : `마지막 활동: ${tool.lastActive}`}
+                      </div>
+                    </div>
                   </div>
                   <div>
-                    <div className="font-bold text-sm text-[#0F172A] flex items-center gap-2">
-                      {tool.name}
-                      {tool.status === 'active' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />}
-                    </div>
-                    <div className="text-[10px] text-[#94A3B8] mt-0.5">마지막 활동: {tool.lastActive}</div>
+                    {tool.status === 'disconnected' ? (
+                      <button onClick={() => handleConnectTool(tool.id)} className="text-xs font-bold bg-white border border-[#E2E8F0] px-3 py-1.5 rounded-lg hover:border-blue-400 hover:text-blue-500 transition-all">
+                        연동하기
+                      </button>
+                    ) : tool.status === 'connecting' ? (
+                      <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <div className="text-right">
+                        <div className="text-sm font-black text-[#0F172A]">{formatMinutes(tool.usageMinutes)}</div>
+                        <div className="text-[10px] text-[#94A3B8]">오늘 누적 사용량</div>
+                      </div>
+                    )}
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-sm font-black text-[#0F172A]">{formatMinutes(tool.usageMinutes)}</div>
-                  <div className="text-[10px] text-[#94A3B8]">오늘 누적 사용량</div>
-                </div>
+                {tool.status === 'connected' && tool.logs.length > 0 && (
+                  <div className="bg-white rounded-lg border border-[#E2E8F0] p-3 text-xs text-[#475569]">
+                    <div className="font-bold text-[#0F172A] mb-1.5 border-b border-[#F1F5F9] pb-1">오늘의 활동 로그</div>
+                    <ul className="space-y-1">
+                      {tool.logs.map((log, i) => <li key={i}>• {log}</li>)}
+                    </ul>
+                  </div>
+                )}
               </div>
             ))}
           </div>
-          
-          <div className="mt-5 p-3 bg-blue-50/50 rounded-xl border border-blue-100 flex items-start gap-2">
-            <span className="text-lg">💡</span>
-            <div className="text-[11px] text-[#64748B] leading-relaxed">
-              연동된 업무 툴에서 발생한 활성 기록(키보드 입력, 페이지 이동, 멘션 등)을 합산하여 <strong>워케이션 성과 증빙 보고서</strong>에 자동 반영됩니다.
+
+          <div className="border-t border-[#F1F5F9] pt-5">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-black text-sm text-[#0F172A]">🤖 AI Daily Reporter</h3>
+              <button 
+                onClick={handleGenerateReport}
+                disabled={reportGenerating || !tools.some(t => t.status === 'connected')}
+                className={`text-xs font-bold px-3 py-2 rounded-xl transition-all shadow-sm ${
+                  tools.some(t => t.status === 'connected')
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700'
+                    : 'bg-[#F1F5F9] text-[#94A3B8] cursor-not-allowed'
+                }`}
+              >
+                {reportGenerating ? 'AI 요약 중...' : '오늘의 일지 자동 생성 ✨'}
+              </button>
             </div>
+            {reportGenerating && (
+              <div className="flex items-center justify-center p-6 border border-[#E2E8F0] rounded-xl bg-[#F8FAFC]">
+                <div className="flex flex-col items-center gap-2">
+                  <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                  <span className="text-xs font-bold text-indigo-500">LLM이 활동 로그를 분석하고 있습니다...</span>
+                </div>
+              </div>
+            )}
+            {report && (
+              <div className="bg-indigo-50/50 border border-indigo-100 rounded-xl p-4">
+                <div className="flex gap-2 mb-2">
+                  <span className="text-lg">✨</span>
+                  <div className="font-bold text-sm text-indigo-900">AI가 요약한 오늘의 업무 성과</div>
+                </div>
+                <p className="text-sm text-indigo-800 leading-relaxed">
+                  {report}
+                </p>
+                <div className="mt-3 flex justify-end">
+                  <button onClick={() => alert("✅ HR 담당자 대시보드로 보고서가 제출되었습니다.")} className="text-xs bg-white border border-indigo-200 text-indigo-600 font-bold px-3 py-1.5 rounded-lg hover:bg-indigo-50 transition-colors">
+                    HR 담당자에게 제출하기
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
