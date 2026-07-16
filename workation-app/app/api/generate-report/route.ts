@@ -46,8 +46,25 @@ ${githubEvents.map((e: any, i: number) => `${i + 1}. [${e.type}] 레포지토리
     return NextResponse.json({ report: text });
   } catch (error: any) {
     console.error('Gemini API Error:', error);
+    
+    let availableModels = '조회 실패';
+    try {
+      const modelsRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+      if (modelsRes.ok) {
+        const modelsData = await modelsRes.json();
+        if (modelsData.models) {
+          availableModels = modelsData.models.map((m: any) => m.name.replace('models/', '')).join(', ');
+        }
+      }
+    } catch (e) {
+      console.error('Failed to fetch models list', e);
+    }
+
     return NextResponse.json(
-      { error: '보고서 생성 중 오류가 발생했습니다.', details: error.message },
+      { 
+        error: '보고서 생성 중 오류가 발생했습니다.', 
+        details: `${error.message}\n\n[현재 API 키로 사용 가능한 모델 목록]\n${availableModels}` 
+      },
       { status: 500 }
     );
   }
