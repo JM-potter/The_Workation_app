@@ -229,57 +229,62 @@ export default function MyWorkationPage() {
         
         {/* 페이지 타이틀 (토스 스타일 큼직한 타이포그래피) */}
         <div className="mb-10 mt-4">
-          <h1 className="text-3xl font-black text-[#191F28] tracking-tight leading-tight mb-2">오늘의 워케이션<br/>어떻게 진행되고 있나요?</h1>
-          <p className="text-[#8B95A1] font-medium">제휴 공간 인증 및 실시간 업무 증빙</p>
+          <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-700 via-indigo-600 to-purple-600 tracking-tight leading-tight mb-3">오늘의 워케이션<br/>어떻게 진행되고 있나요?</h1>
+          <p className="text-[#64748B] font-semibold text-[15px]">제휴 공간 인증 및 실시간 업무 증빙</p>
         </div>
 
         {/* 🎯 0. 워케이션 마이크로 OKR 및 컨디션 */}
-        <div className="bg-white rounded-[24px] p-8 mb-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="font-bold text-[19px] text-[#191F28]">나의 핵심 목표</h2>
-            <span className="text-[12px] bg-[#F2F4F6] text-[#4E5968] px-3 py-1 rounded-full font-bold">
+        <div className="bg-gradient-to-br from-[#F8FAFC] to-[#F1F5F9] border border-white rounded-[32px] p-8 mb-6 shadow-[0_10px_40px_rgb(0,0,0,0.06)] relative overflow-hidden">
+          {/* 장식용 블러 원형 */}
+          <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-400/20 rounded-full blur-3xl pointer-events-none" />
+          
+          <div className="flex items-center justify-between mb-6 relative z-10">
+            <h2 className="font-bold text-[20px] text-[#0F172A] flex items-center gap-2">
+              <span className="text-2xl drop-shadow-md">🎯</span> 나의 핵심 목표
+            </h2>
+            <span className="text-[12px] bg-white text-indigo-600 border border-indigo-100 px-3 py-1.5 rounded-full font-extrabold shadow-sm">
               자기 주도 성과
             </span>
           </div>
           
-          <div className="mb-8">
+          <div className="mb-8 relative z-10">
             <input 
               type="text" 
               value={okrGoal} 
               onChange={e => setOkrGoal(e.target.value)}
-              className="w-full bg-[#F2F4F6] border-none rounded-[16px] px-5 py-4 text-[15px] font-semibold text-[#191F28] focus:outline-none focus:ring-2 focus:ring-[#3182F6] transition-all placeholder-[#B0B8C1]"
+              className="w-full bg-white border border-slate-200 rounded-[20px] px-6 py-5 text-[16px] font-bold text-[#0F172A] focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder-slate-400 shadow-sm hover:shadow-md"
               placeholder="이번 워케이션의 핵심 목표를 적어주세요"
             />
           </div>
 
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-3">
-              <label className="text-[14px] font-bold text-[#4E5968]">현재 달성률</label>
-              <span className="text-[22px] font-black text-[#3182F6]">{okrProgress}%</span>
+          <div className="mb-10 relative z-10">
+            <div className="flex items-center justify-between mb-4">
+              <label className="text-[14px] font-bold text-[#475569]">현재 달성률</label>
+              <span className="text-[28px] font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 drop-shadow-sm">{okrProgress}%</span>
             </div>
             <input 
               type="range" 
               min="0" max="100" 
               value={okrProgress} 
               onChange={e => setOkrProgress(Number(e.target.value))}
-              className="w-full accent-[#3182F6] h-2 bg-[#F2F4F6] rounded-lg appearance-none cursor-pointer"
+              className="w-full accent-indigo-600 h-3 bg-white border border-slate-200 rounded-full appearance-none cursor-pointer shadow-inner"
             />
           </div>
 
-          <div className="bg-[#F9FAFB] rounded-[16px] p-5 flex items-center justify-between">
-            <div className="text-[14px] font-bold text-[#4E5968]">오늘의 컨디션 어떠신가요?</div>
-            <div className="flex gap-2">
+          <div className="bg-white/80 backdrop-blur-md border border-white rounded-[24px] p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm relative z-10">
+            <div className="text-[15px] font-bold text-[#334155]">오늘의 컨디션 어떠신가요?</div>
+            <div className="flex gap-3">
               {['😊', '😐', '😫'].map(emoji => (
                 <button 
                   key={emoji}
                   onClick={() => setCondition(emoji)}
-                  className={`w-12 h-12 rounded-full text-2xl flex items-center justify-center transition-all ${
+                  className={`w-14 h-14 rounded-2xl text-3xl flex items-center justify-center transition-all duration-300 ${
                     condition === emoji 
-                      ? 'bg-white shadow-[0_2px_10px_rgb(0,0,0,0.08)] scale-110' 
-                      : 'grayscale opacity-40 hover:grayscale-0 hover:opacity-100'
+                      ? 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-[0_8px_20px_rgba(99,102,241,0.4)] scale-110 -translate-y-1' 
+                      : 'bg-[#F1F5F9] text-slate-400 grayscale hover:grayscale-0 hover:bg-white hover:shadow-md hover:-translate-y-1'
                   }`}
                 >
-                  {emoji}
+                  <span className={condition === emoji ? 'drop-shadow-md' : ''}>{emoji}</span>
                 </button>
               ))}
             </div>
@@ -287,38 +292,42 @@ export default function MyWorkationPage() {
         </div>
 
         {/* 📶 1. 네트워크 근태 인증 시뮬레이터 */}
-        <div className="bg-white border border-[#E2E8F0] rounded-2xl p-6 mb-6 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-black text-base text-[#0F172A]">📡 실시간 근태 인증 시스템</h2>
+        <div className="bg-white rounded-[32px] p-8 mb-6 shadow-[0_10px_40px_rgb(0,0,0,0.04)]">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="font-bold text-[20px] text-[#0F172A] flex items-center gap-2">
+              <span className="text-2xl">📡</span> 실시간 근태 인증 시스템
+            </h2>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-[#94A3B8]">데모용 스위치:</span>
+              <span className="text-xs text-[#94A3B8] font-medium">데모용 스위치:</span>
               <button 
                 onClick={() => {
                   setIsConnected(!isConnected)
                   if (isCheckedIn) setIsCheckedIn(false)
                 }}
-                className={`text-xs px-3 py-1.5 rounded-lg border font-bold transition-all ${
+                className={`text-xs px-4 py-2 rounded-xl font-bold transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 ${
                   isConnected 
-                    ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100' 
-                    : 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100'
+                    ? 'bg-red-50 text-red-600 hover:bg-red-100' 
+                    : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
                 }`}
               >
-                {isConnected ? '🔌 와이파이 연결 끊기' : '📶 제휴 공간 와이파이 연결'}
+                {isConnected ? '🔌 와이파이 끊기' : '📶 공간 와이파이 연결'}
               </button>
             </div>
           </div>
 
           {/* 네트워크 상태창 */}
-          <div className={`rounded-xl p-4 mb-5 border transition-all ${
+          <div className={`rounded-[20px] p-5 mb-6 border-2 transition-all duration-500 ${
             isConnected 
-              ? 'bg-emerald-500/5 border-emerald-500/20' 
-              : 'bg-red-500/5 border-red-500/20'
+              ? 'bg-emerald-50/50 border-emerald-100' 
+              : 'bg-red-50/50 border-red-100'
           }`}>
-            <div className="flex items-center gap-2.5">
-              <span className="text-xl">{isConnected ? '🟢' : '🔴'}</span>
+            <div className="flex items-center gap-4">
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl shadow-inner ${isConnected ? 'bg-emerald-100' : 'bg-red-100'}`}>
+                {isConnected ? '🟢' : '🔴'}
+              </div>
               <div>
-                <div className="text-xs text-[#94A3B8] font-semibold uppercase">현재 네트워크 상태</div>
-                <div className={`text-sm font-black mt-0.5 ${isConnected ? 'text-emerald-600' : 'text-red-500'}`}>
+                <div className="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-1">현재 네트워크 상태</div>
+                <div className={`text-[15px] font-black ${isConnected ? 'text-emerald-600' : 'text-red-500'}`}>
                   {isConnected 
                     ? '인증됨: 홍천 스마트워크센터 IP 접속 중 (WiFi: Workation_Guest_5G)' 
                     : '미인증: 숙소/개인망 접속 중'
@@ -329,47 +338,47 @@ export default function MyWorkationPage() {
           </div>
 
           {/* 출퇴근 액션 버튼 */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-5">
             <button
               onClick={handleCheckIn}
               disabled={!isConnected || isCheckedIn}
-              className={`py-4 rounded-xl text-sm font-bold border-2 transition-all flex flex-col items-center justify-center gap-1 ${
+              className={`py-5 rounded-[20px] text-sm font-bold transition-all duration-300 flex flex-col items-center justify-center gap-2 ${
                 isCheckedIn
-                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 cursor-not-allowed'
+                  ? 'bg-emerald-50 text-emerald-600 cursor-not-allowed border border-emerald-100'
                   : isConnected
-                    ? 'bg-blue-600 border-blue-600 text-white hover:bg-blue-700 hover:border-blue-700 shadow-md active:scale-[0.98]'
-                    : 'bg-[#F1F5F9] border-[#E2E8F0] text-[#94A3B8] cursor-not-allowed'
+                    ? 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-[0_8px_20px_rgba(59,130,246,0.4)] hover:shadow-[0_12px_25px_rgba(59,130,246,0.5)] hover:-translate-y-1 active:scale-95'
+                    : 'bg-slate-50 text-slate-400 cursor-not-allowed border border-slate-100'
               }`}
             >
-              <span className="text-lg">🚪</span>
-              <span className="font-black">근무 시작 (Check-in)</span>
-              {checkInTime && <span className="text-[10px] opacity-80">출근 기록: {checkInTime}</span>}
+              <span className="text-2xl drop-shadow-sm">🚪</span>
+              <span className="font-black text-[15px]">근무 시작 (Check-in)</span>
+              {checkInTime && <span className="text-[11px] opacity-90 font-medium">출근 기록: {checkInTime}</span>}
             </button>
 
             <button
               onClick={handleCheckOut}
               disabled={!isCheckedIn}
-              className={`py-4 rounded-xl text-sm font-bold border-2 transition-all flex flex-col items-center justify-center gap-1 ${
+              className={`py-5 rounded-[20px] text-sm font-bold transition-all duration-300 flex flex-col items-center justify-center gap-2 ${
                 isCheckedIn
-                  ? 'bg-red-600 border-red-600 text-white hover:bg-red-700 hover:border-red-700 shadow-md active:scale-[0.98]'
-                  : 'bg-[#F1F5F9] border-[#E2E8F0] text-[#94A3B8] cursor-not-allowed'
+                  ? 'bg-gradient-to-br from-rose-500 to-orange-500 text-white shadow-[0_8px_20px_rgba(244,63,94,0.4)] hover:shadow-[0_12px_25px_rgba(244,63,94,0.5)] hover:-translate-y-1 active:scale-95'
+                  : 'bg-slate-50 text-slate-400 cursor-not-allowed border border-slate-100'
               }`}
             >
-              <span className="text-lg">🏃</span>
-              <span className="font-black">근무 종료 (Check-out)</span>
-              {checkOutTime && <span className="text-[10px] opacity-80">퇴근 기록: {checkOutTime}</span>}
+              <span className="text-2xl drop-shadow-sm">🏃</span>
+              <span className="font-black text-[15px]">근무 종료 (Check-out)</span>
+              {checkOutTime && <span className="text-[11px] opacity-90 font-medium">퇴근 기록: {checkOutTime}</span>}
             </button>
           </div>
 
           {!isConnected && (
-            <p className="text-[11px] text-red-400 mt-3 text-center">
-              ⚠️ 제휴 공간 전용 와이파이망(예: 홍천 스마트워크센터)에 연결되어야 출퇴근 버튼이 활성화됩니다.
-            </p>
+            <div className="mt-5 text-center bg-red-50/50 text-red-500 py-3 rounded-xl text-[12px] font-bold">
+              ⚠️ 제휴 공간 전용 와이파이망(예: 홍천 스마트워크센터)에 연결되어야 버튼이 활성화됩니다.
+            </div>
           )}
           {isCheckedIn && (
-            <p className="text-[11px] text-emerald-600 mt-3 text-center animate-pulse font-medium">
+            <div className="mt-5 text-center bg-emerald-50/50 text-emerald-600 py-3 rounded-xl text-[12px] font-bold animate-pulse">
               🟢 현재 정상 근무 중으로 기록되고 있습니다. 업무를 마치면 근무 종료를 눌러주세요.
-            </p>
+            </div>
           )}
         </div>
 
@@ -519,42 +528,45 @@ export default function MyWorkationPage() {
             ))}
           </div>
 
-          <div className="border-t border-[#F2F4F6] pt-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-[18px] text-[#191F28]">🤖 AI Daily Reporter</h3>
+          <div className="border-t border-slate-100 pt-8 mt-4">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="font-bold text-[20px] text-[#0F172A] flex items-center gap-2">
+                <span className="text-2xl">🤖</span> AI Daily Reporter
+              </h3>
               <button 
                 onClick={handleGenerateReport}
                 disabled={reportGenerating || !tools.some(t => t.status === 'connected')}
-                className={`text-[14px] font-bold px-4 py-2.5 rounded-xl transition-all shadow-sm ${
+                className={`text-[15px] font-bold px-6 py-3 rounded-full transition-all duration-300 ${
                   tools.some(t => t.status === 'connected')
-                    ? 'bg-gradient-to-r from-[#3182F6] to-[#5C2BBD] text-white hover:opacity-90'
-                    : 'bg-[#F2F4F6] text-[#B0B8C1] cursor-not-allowed'
+                    ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white shadow-[0_8px_20px_rgba(168,85,247,0.4)] hover:shadow-[0_12px_25px_rgba(168,85,247,0.6)] hover:-translate-y-1 active:scale-95'
+                    : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                 }`}
               >
                 {reportGenerating ? 'AI가 요약 중이에요...' : '오늘의 성과 요약하기 ✨'}
               </button>
             </div>
             {reportGenerating && (
-              <div className="flex items-center justify-center p-8 border border-[#F2F4F6] rounded-2xl bg-[#F9FAFB]">
-                <div className="flex flex-col items-center gap-3">
-                  <div className="w-8 h-8 border-3 border-[#5C2BBD] border-t-transparent rounded-full animate-spin" />
-                  <span className="text-[14px] font-bold text-[#5C2BBD]">Gemini AI가 진짜 깃허브 데이터를 분석하고 있습니다...</span>
+              <div className="flex items-center justify-center p-10 border border-purple-100 rounded-[24px] bg-gradient-to-br from-purple-50/50 to-indigo-50/50">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin shadow-sm" />
+                  <span className="text-[15px] font-bold text-purple-700 animate-pulse">Gemini AI가 진짜 깃허브 데이터를 분석하고 있습니다...</span>
                 </div>
               </div>
             )}
             {report && (
-              <div className="bg-[#F4F1FD] rounded-2xl p-6 shadow-sm">
-                <div className="flex gap-2 mb-3">
-                  <span className="text-xl">✨</span>
-                  <div className="font-bold text-[16px] text-[#4B309B]">Gemini 종합 성과 리포트 (수정 가능)</div>
+              <div className="bg-gradient-to-br from-[#F4F1FD] to-[#EEF2FF] border border-indigo-100 rounded-[28px] p-8 shadow-[0_10px_30px_rgb(0,0,0,0.03)] relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400" />
+                <div className="flex gap-2 mb-4">
+                  <span className="text-2xl drop-shadow-sm">✨</span>
+                  <div className="font-bold text-[18px] text-[#4B309B]">Gemini 종합 성과 리포트 (수정 가능)</div>
                 </div>
                 <textarea 
-                  className="w-full text-[15px] text-[#333D4B] bg-white border-none rounded-xl p-5 leading-relaxed min-h-[220px] focus:outline-none focus:ring-2 focus:ring-[#5C2BBD] resize-y shadow-sm"
+                  className="w-full text-[16px] text-[#334155] bg-white/80 backdrop-blur-sm border border-indigo-100 rounded-[20px] p-6 leading-relaxed min-h-[220px] focus:outline-none focus:ring-4 focus:ring-purple-500/20 focus:border-purple-400 focus:bg-white resize-y shadow-inner transition-all"
                   value={report}
                   onChange={e => setReport(e.target.value)}
                 />
-                <div className="mt-4 flex justify-end">
-                  <button onClick={() => alert("✅ HR 담당자 대시보드로 보고서가 제출되었습니다.")} className="text-[14px] bg-[#191F28] text-white font-bold px-5 py-3 rounded-xl hover:bg-[#333D4B] shadow-md transition-all">
+                <div className="mt-5 flex justify-end">
+                  <button onClick={() => alert("✅ HR 담당자 대시보드로 보고서가 제출되었습니다.")} className="text-[15px] bg-slate-800 text-white font-bold px-6 py-3.5 rounded-full hover:bg-slate-900 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                     HR 대시보드로 최종 제출
                   </button>
                 </div>
