@@ -49,7 +49,7 @@ ${githubEvents.map((e: any, i: number) => `${i + 1}. [${e.type}] 레포지토리
     
     let availableModels = '조회 실패';
     try {
-      const modelsRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+      const modelsRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${process.env.GEMINI_API_KEY}`);
       if (modelsRes.ok) {
         const modelsData = await modelsRes.json();
         if (modelsData.models) {
