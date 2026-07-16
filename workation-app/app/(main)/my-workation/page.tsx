@@ -122,7 +122,7 @@ export default function MyWorkationPage() {
       setReport(data.report);
     } catch (e: any) {
       alert(e.message);
-      setReport("Gemini API 호출에 실패했습니다. (.env.local 파일에 GEMINI_API_KEY가 있는지 확인해주세요)");
+      setReport(`Gemini API 호출에 실패했습니다.\n\n[상세 에러 내용]\n${e.message}\n\n* Vercel 환경 변수(GEMINI_API_KEY) 설정 후 'Redeploy'를 했는지 확인해주세요.\n* Vercel Logs 탭에서 더 자세한 서버 로그를 확인할 수 있습니다.`);
     } finally {
       setReportGenerating(false)
     }
