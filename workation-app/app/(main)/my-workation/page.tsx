@@ -58,22 +58,39 @@ export default function MyWorkationPage() {
         if (!res.ok) throw new Error('GitHub 계정을 찾을 수 없거나 데이터를 불러올 수 없습니다.');
         const data = await res.json();
         
-        // 오늘 날짜의 PushEvent, PullRequestEvent 필터링
+        // 오늘 날짜의 모든 이벤트 시간순 정렬
         const today = new Date().toISOString().split('T')[0];
-        const validEvents = data.filter((e: any) => 
-          (e.type === 'PushEvent' || e.type === 'PullRequestEvent') && 
-          e.created_at.startsWith(today)
-        ).slice(0, 10);
+        const validEvents = data.filter((e: any) => e.created_at.startsWith(today))
+          .sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
 
-        setGithubEvents(validEvents);
-        const usageMinutes = validEvents.length * 45; // 1개당 45분 산정
+        let usageMinutes = 0;
+        if (validEvents.length > 0) {
+          usageMinutes += 60; // 첫 커밋/활동에 대한 기본 업무 시간(컨텍스트 타임) 1시간 부여
+          
+          for (let i = 1; i < validEvents.length; i++) {
+            const diffMs = new Date(validEvents[i].created_at).getTime() - new Date(validEvents[i-1].created_at).getTime();
+            const diffMins = Math.floor(diffMs / (1000 * 60));
+            
+            if (diffMins <= 120) {
+              // 이벤트 간격이 2시간 이내면 연속된 업무 세션으로 간주하여 실제 시간차(분) 합산
+              usageMinutes += diffMins;
+            } else {
+              // 이벤트 간격이 2시간 초과면 새로운 업무 세션으로 간주하고 기본 60분 다시 부여
+              usageMinutes += 60;
+            }
+          }
+        }
+
+        // 최신순 출력을 위해 다시 역순 정렬 (최대 10개)
+        const displayEvents = [...validEvents].reverse().slice(0, 10);
+        setGithubEvents(displayEvents);
 
         setTools(prev => prev.map(t => t.id === id ? { 
           ...t, 
           status: 'connected', 
           usageMinutes, 
-          lastActive: '방금 전', 
-          logs: validEvents.map((e: any) => `[${new Date(e.created_at).toLocaleTimeString('ko-KR', {hour: '2-digit', minute:'2-digit'})}] ${e.type === 'PushEvent' ? '코드 푸시' : 'PR 활동'} (${e.repo.name})`) 
+          lastActive: displayEvents.length > 0 ? '방금 전' : '-', 
+          logs: displayEvents.map((e: any) => `[${new Date(e.created_at).toLocaleTimeString('ko-KR', {hour: '2-digit', minute:'2-digit'})}] ${e.type === 'PushEvent' ? '코드 푸시' : e.type === 'PullRequestEvent' ? 'PR 활동' : '기타 활동'} (${e.repo.name})`) 
         } : t));
       } catch (e: any) {
         alert(e.message);
