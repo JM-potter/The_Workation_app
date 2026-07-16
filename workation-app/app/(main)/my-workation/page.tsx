@@ -48,7 +48,7 @@ export default function MyWorkationPage() {
   const handleConnectTool = async (id: string) => {
     if (id === 'github') {
       if (!githubUsername) {
-        alert('GitHub 아이디를 입력해주세요!');
+        alert('GitHub 닉네임(Username)을 입력해주세요! (이메일 주소 불가)');
         return;
       }
       setTools(prev => prev.map(t => t.id === id ? { ...t, status: 'connecting' } : t))
@@ -484,7 +484,7 @@ export default function MyWorkationPage() {
                         {tool.id === 'github' && (
                           <input 
                             type="text" 
-                            placeholder="GitHub 아이디" 
+                            placeholder="GitHub 닉네임 (Username)" 
                             value={githubUsername}
                             onChange={e => setGithubUsername(e.target.value)}
                             className="bg-white border-none rounded-xl px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-[#3182F6] shadow-sm w-32"
