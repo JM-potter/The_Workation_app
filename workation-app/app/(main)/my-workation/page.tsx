@@ -37,34 +37,82 @@ export default function MyWorkationPage() {
   const [okrProgress, setOkrProgress] = useState(65)
   const [condition, setCondition] = useState('😊') // 😊, 😐, 😫
 
+  const [githubUsername, setGithubUsername] = useState('')
+  const [githubEvents, setGithubEvents] = useState<any[]>([])
+  
   const [report, setReport] = useState<string | null>(null)
   const [reportGenerating, setReportGenerating] = useState(false)
 
-  const handleConnectTool = (id: string) => {
-    setTools(prev => prev.map(t => t.id === id ? { ...t, status: 'connecting' } : t))
-    setTimeout(() => {
-      setTools(prev => prev.map(t => {
-        if (t.id === id) {
-          if (id === 'slack') {
-            return { ...t, status: 'connected', usageMinutes: 145, lastActive: '방금 전', logs: ['[10:00] 디자인팀 채널에 메시지 전송', '[11:30] 기획 회의 스레드 응답', '[14:15] 새로운 팀원 환영 인사'] }
-          }
-          if (id === 'github') {
-            return { ...t, status: 'connected', usageMinutes: 210, lastActive: '방금 전', logs: ['[09:30] feat/dashboard 브랜치 커밋', '[13:00] PR #42 리뷰 완료', '[15:45] 버그 픽스 커밋 푸시'] }
-          }
-        }
-        return t
-      }))
-    }, 1500)
+  const handleConnectTool = async (id: string) => {
+    if (id === 'github') {
+      if (!githubUsername) {
+        alert('GitHub 아이디를 입력해주세요!');
+        return;
+      }
+      setTools(prev => prev.map(t => t.id === id ? { ...t, status: 'connecting' } : t))
+      
+      try {
+        const res = await fetch(`https://api.github.com/users/${githubUsername}/events/public`);
+        if (!res.ok) throw new Error('GitHub 계정을 찾을 수 없거나 데이터를 불러올 수 없습니다.');
+        const data = await res.json();
+        
+        // 오늘 날짜의 PushEvent, PullRequestEvent 필터링
+        const today = new Date().toISOString().split('T')[0];
+        const validEvents = data.filter((e: any) => 
+          (e.type === 'PushEvent' || e.type === 'PullRequestEvent') && 
+          e.created_at.startsWith(today)
+        ).slice(0, 10);
+
+        setGithubEvents(validEvents);
+        const usageMinutes = validEvents.length * 45; // 1개당 45분 산정
+
+        setTools(prev => prev.map(t => t.id === id ? { 
+          ...t, 
+          status: 'connected', 
+          usageMinutes, 
+          lastActive: '방금 전', 
+          logs: validEvents.map((e: any) => `[${new Date(e.created_at).toLocaleTimeString('ko-KR', {hour: '2-digit', minute:'2-digit'})}] ${e.type === 'PushEvent' ? '코드 푸시' : 'PR 활동'} (${e.repo.name})`) 
+        } : t));
+      } catch (e: any) {
+        alert(e.message);
+        setTools(prev => prev.map(t => t.id === id ? { ...t, status: 'disconnected' } : t));
+      }
+    } else {
+      // 기존 하드코딩 슬랙 로직
+      setTools(prev => prev.map(t => t.id === id ? { ...t, status: 'connecting' } : t))
+      setTimeout(() => {
+        setTools(prev => prev.map(t => t.id === id ? { ...t, status: 'connected', usageMinutes: 145, lastActive: '방금 전', logs: ['[10:00] 디자인팀 채널에 메시지 전송', '[11:30] 기획 회의 스레드 응답', '[14:15] 새로운 팀원 환영 인사'] } : t))
+      }, 1500)
+    }
   }
 
-  const handleGenerateReport = () => {
+  const handleGenerateReport = async () => {
     setReportGenerating(true)
     setReport(null)
-    setTimeout(() => {
+    
+    try {
+      const res = await fetch('/api/generate-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          okrGoal,
+          okrProgress,
+          condition: condition === '😊' ? '최상' : condition === '😐' ? '보통' : '지침',
+          githubUsername,
+          githubEvents
+        })
+      });
+      
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || '리포트 생성 실패');
+      
+      setReport(data.report);
+    } catch (e: any) {
+      alert(e.message);
+      setReport("Gemini API 호출에 실패했습니다. (.env.local 파일에 GEMINI_API_KEY가 있는지 확인해주세요)");
+    } finally {
       setReportGenerating(false)
-      const conditionText = condition === '😊' ? '매우 좋음' : condition === '😐' ? '보통' : '주의(지침)';
-      setReport(`🎯 워케이션 핵심 목표: [${okrGoal}]\n▶ 현재 달성률: ${okrProgress}%\n\n📊 업무 툴(SaaS) 활동 내역:\n- Slack: 기획/디자인팀과 주요 커뮤니케이션 3건 (145분)\n- GitHub: 대시보드 기능 구현 및 PR 리뷰 등 개발 기여 3건 (210분)\n▶ 총 355분의 높은 딥워크(Deep Work) 시간 기록.\n\n🔋 번아웃 회복 지수 (오늘의 컨디션): ${conditionText}\n- 성공적이고 몰입도 높은 워케이션을 진행 중입니다.`)
-    }, 2000)
+    }
   }
 
   useEffect(() => {
@@ -166,59 +214,56 @@ export default function MyWorkationPage() {
 
       <div className="max-w-3xl mx-auto px-6 py-8">
         
-        {/* 페이지 타이틀 */}
-        <div className="mb-8">
-          <div className="text-xs text-[#94A3B8] mb-2">
-            <Link href="/my" className="hover:text-blue-500 transition-colors">← 마이페이지로</Link>
-          </div>
-          <h1 className="text-2xl font-black text-[#0F172A] mb-1">📶 마이 워케이션</h1>
-          <p className="text-sm text-[#475569]">제휴 공간 전용 와이파이 근태 인증 및 업무 증빙</p>
+        {/* 페이지 타이틀 (토스 스타일 큼직한 타이포그래피) */}
+        <div className="mb-10 mt-4">
+          <h1 className="text-3xl font-black text-[#191F28] tracking-tight leading-tight mb-2">오늘의 워케이션<br/>어떻게 진행되고 있나요?</h1>
+          <p className="text-[#8B95A1] font-medium">제휴 공간 인증 및 실시간 업무 증빙</p>
         </div>
 
         {/* 🎯 0. 워케이션 마이크로 OKR 및 컨디션 */}
-        <div className="bg-white border border-[#E2E8F0] rounded-2xl p-6 mb-6 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-black text-base text-[#0F172A]">🎯 워케이션 마이크로 OKR</h2>
-            <span className="text-[10px] bg-blue-500/10 text-blue-600 px-2 py-0.5 rounded-full border border-blue-500/20 font-bold">
+        <div className="bg-white rounded-[24px] p-8 mb-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="font-bold text-[19px] text-[#191F28]">나의 핵심 목표</h2>
+            <span className="text-[12px] bg-[#F2F4F6] text-[#4E5968] px-3 py-1 rounded-full font-bold">
               자기 주도 성과
             </span>
           </div>
           
-          <div className="mb-5">
-            <label className="text-xs font-bold text-[#475569] block mb-1">이번 워케이션의 핵심 목표</label>
+          <div className="mb-8">
             <input 
               type="text" 
               value={okrGoal} 
               onChange={e => setOkrGoal(e.target.value)}
-              className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm font-semibold text-[#0F172A] focus:outline-none focus:border-blue-400 transition-colors"
+              className="w-full bg-[#F2F4F6] border-none rounded-[16px] px-5 py-4 text-[15px] font-semibold text-[#191F28] focus:outline-none focus:ring-2 focus:ring-[#3182F6] transition-all placeholder-[#B0B8C1]"
+              placeholder="이번 워케이션의 핵심 목표를 적어주세요"
             />
           </div>
 
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-xs font-bold text-[#475569] block">현재 목표 달성률</label>
-              <span className="text-sm font-black text-blue-600">{okrProgress}%</span>
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-3">
+              <label className="text-[14px] font-bold text-[#4E5968]">현재 달성률</label>
+              <span className="text-[22px] font-black text-[#3182F6]">{okrProgress}%</span>
             </div>
             <input 
               type="range" 
               min="0" max="100" 
               value={okrProgress} 
               onChange={e => setOkrProgress(Number(e.target.value))}
-              className="w-full accent-blue-600 h-2 bg-[#E2E8F0] rounded-lg appearance-none cursor-pointer"
+              className="w-full accent-[#3182F6] h-2 bg-[#F2F4F6] rounded-lg appearance-none cursor-pointer"
             />
           </div>
 
-          <div className="border-t border-[#F1F5F9] pt-4 flex items-center justify-between">
-            <div className="text-xs font-bold text-[#475569]">오늘의 컨디션 (번아웃 체크)</div>
+          <div className="bg-[#F9FAFB] rounded-[16px] p-5 flex items-center justify-between">
+            <div className="text-[14px] font-bold text-[#4E5968]">오늘의 컨디션 어떠신가요?</div>
             <div className="flex gap-2">
               {['😊', '😐', '😫'].map(emoji => (
                 <button 
                   key={emoji}
                   onClick={() => setCondition(emoji)}
-                  className={`w-10 h-10 rounded-full text-xl flex items-center justify-center transition-all ${
+                  className={`w-12 h-12 rounded-full text-2xl flex items-center justify-center transition-all ${
                     condition === emoji 
-                      ? 'bg-blue-100 border-2 border-blue-500 shadow-sm scale-110' 
-                      : 'bg-[#F8FAFC] border border-[#E2E8F0] grayscale opacity-60 hover:grayscale-0 hover:opacity-100'
+                      ? 'bg-white shadow-[0_2px_10px_rgb(0,0,0,0.08)] scale-110' 
+                      : 'grayscale opacity-40 hover:grayscale-0 hover:opacity-100'
                   }`}
                 >
                   {emoji}
@@ -377,53 +422,67 @@ export default function MyWorkationPage() {
         </div>
 
         {/* 📊 3. 업무 툴 연동 현황 */}
-        <div className="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-1">
-            <h2 className="font-black text-base text-[#0F172A]">📊 실시간 업무 툴 연동 현황</h2>
-            <span className="text-[10px] bg-purple-500/10 text-purple-600 px-2 py-0.5 rounded-full border border-purple-500/20 font-bold">
-              자율 성과 증빙
+        <div className="bg-white rounded-[24px] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="font-bold text-[19px] text-[#191F28]">실시간 업무 툴 연동</h2>
+            <span className="text-[12px] bg-[#E8F3FF] text-[#3182F6] px-3 py-1 rounded-full font-bold">
+              Real-time API
             </span>
           </div>
-          <p className="text-xs text-[#94A3B8] mb-5">업무 툴(Slack, GitHub)을 연동하여 나의 성과를 비침해적으로 증명하세요.</p>
+          <p className="text-[14px] text-[#8B95A1] mb-6">GitHub 실제 데이터를 불러옵니다.</p>
           
-          <div className="grid gap-3 mb-5">
+          <div className="grid gap-4 mb-6">
             {tools.map(tool => (
-              <div key={tool.id} className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-4 transition-all">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-white rounded-lg border border-[#E2E8F0] flex items-center justify-center text-xl shadow-sm">
+              <div key={tool.id} className="bg-[#F9FAFB] rounded-[20px] p-5 transition-all">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-3">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-2xl shadow-[0_2px_8px_rgb(0,0,0,0.04)]">
                       {tool.icon}
                     </div>
                     <div>
-                      <div className="font-bold text-sm text-[#0F172A] flex items-center gap-2">
+                      <div className="font-bold text-[16px] text-[#191F28] flex items-center gap-2">
                         {tool.name}
-                        {tool.status === 'connected' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />}
+                        {tool.status === 'connected' && <span className="w-2 h-2 rounded-full bg-[#00C85A] animate-pulse" />}
                       </div>
-                      <div className="text-[10px] text-[#94A3B8] mt-0.5">
-                        {tool.status === 'disconnected' ? '연동되지 않음' : tool.status === 'connecting' ? '연동 중...' : `마지막 활동: ${tool.lastActive}`}
+                      <div className="text-[13px] text-[#8B95A1] mt-0.5">
+                        {tool.status === 'disconnected' ? '연동되지 않음' : tool.status === 'connecting' ? '연동 중...' : `최근 업데이트: ${tool.lastActive}`}
                       </div>
                     </div>
                   </div>
                   <div>
                     {tool.status === 'disconnected' ? (
-                      <button onClick={() => handleConnectTool(tool.id)} className="text-xs font-bold bg-white border border-[#E2E8F0] px-3 py-1.5 rounded-lg hover:border-blue-400 hover:text-blue-500 transition-all">
-                        연동하기
-                      </button>
+                      <div className="flex items-center gap-2">
+                        {tool.id === 'github' && (
+                          <input 
+                            type="text" 
+                            placeholder="GitHub 아이디" 
+                            value={githubUsername}
+                            onChange={e => setGithubUsername(e.target.value)}
+                            className="bg-white border-none rounded-xl px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-[#3182F6] shadow-sm w-32"
+                          />
+                        )}
+                        <button onClick={() => handleConnectTool(tool.id)} className="text-[14px] font-bold bg-[#3182F6] text-white px-4 py-2 rounded-xl hover:bg-[#1B64DA] transition-all shadow-sm">
+                          연동하기
+                        </button>
+                      </div>
                     ) : tool.status === 'connecting' ? (
-                      <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                      <div className="w-6 h-6 border-3 border-[#3182F6] border-t-transparent rounded-full animate-spin" />
                     ) : (
                       <div className="text-right">
-                        <div className="text-sm font-black text-[#0F172A]">{formatMinutes(tool.usageMinutes)}</div>
-                        <div className="text-[10px] text-[#94A3B8]">오늘 누적 사용량</div>
+                        <div className="text-xl font-black text-[#191F28] tracking-tight">{formatMinutes(tool.usageMinutes)}</div>
+                        <div className="text-[12px] text-[#8B95A1] font-medium mt-0.5">오늘 자동 측정된 시간</div>
                       </div>
                     )}
                   </div>
                 </div>
                 {tool.status === 'connected' && tool.logs.length > 0 && (
-                  <div className="bg-white rounded-lg border border-[#E2E8F0] p-3 text-xs text-[#475569]">
-                    <div className="font-bold text-[#0F172A] mb-1.5 border-b border-[#F1F5F9] pb-1">오늘의 활동 로그</div>
-                    <ul className="space-y-1">
-                      {tool.logs.map((log, i) => <li key={i}>• {log}</li>)}
+                  <div className="bg-white rounded-2xl p-4 mt-3 shadow-sm border border-[#F2F4F6]">
+                    <div className="font-bold text-[#333D4B] text-[13px] mb-2 flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 bg-[#3182F6] rounded-full"></span> 
+                      오늘의 활동 (최신순)
+                    </div>
+                    <ul className="space-y-1.5">
+                      {tool.logs.map((log, i) => <li key={i} className="text-[13px] text-[#4E5968] truncate">{log}</li>)}
                     </ul>
                   </div>
                 )}
@@ -431,42 +490,42 @@ export default function MyWorkationPage() {
             ))}
           </div>
 
-          <div className="border-t border-[#F1F5F9] pt-5">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-black text-sm text-[#0F172A]">🤖 AI Daily Reporter</h3>
+          <div className="border-t border-[#F2F4F6] pt-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-[18px] text-[#191F28]">🤖 AI Daily Reporter</h3>
               <button 
                 onClick={handleGenerateReport}
                 disabled={reportGenerating || !tools.some(t => t.status === 'connected')}
-                className={`text-xs font-bold px-3 py-2 rounded-xl transition-all shadow-sm ${
+                className={`text-[14px] font-bold px-4 py-2.5 rounded-xl transition-all shadow-sm ${
                   tools.some(t => t.status === 'connected')
-                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700'
-                    : 'bg-[#F1F5F9] text-[#94A3B8] cursor-not-allowed'
+                    ? 'bg-gradient-to-r from-[#3182F6] to-[#5C2BBD] text-white hover:opacity-90'
+                    : 'bg-[#F2F4F6] text-[#B0B8C1] cursor-not-allowed'
                 }`}
               >
-                {reportGenerating ? 'AI 요약 중...' : '오늘의 일지 자동 생성 ✨'}
+                {reportGenerating ? 'AI가 요약 중이에요...' : '오늘의 성과 요약하기 ✨'}
               </button>
             </div>
             {reportGenerating && (
-              <div className="flex items-center justify-center p-6 border border-[#E2E8F0] rounded-xl bg-[#F8FAFC]">
-                <div className="flex flex-col items-center gap-2">
-                  <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-                  <span className="text-xs font-bold text-indigo-500">LLM이 활동 로그를 분석하고 있습니다...</span>
+              <div className="flex items-center justify-center p-8 border border-[#F2F4F6] rounded-2xl bg-[#F9FAFB]">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-8 h-8 border-3 border-[#5C2BBD] border-t-transparent rounded-full animate-spin" />
+                  <span className="text-[14px] font-bold text-[#5C2BBD]">Gemini AI가 진짜 깃허브 데이터를 분석하고 있습니다...</span>
                 </div>
               </div>
             )}
             {report && (
-              <div className="bg-indigo-50/50 border border-indigo-100 rounded-xl p-4">
-                <div className="flex gap-2 mb-2">
-                  <span className="text-lg">✨</span>
-                  <div className="font-bold text-sm text-indigo-900">AI 종합 워케이션 성과 리포트 (수정 가능)</div>
+              <div className="bg-[#F4F1FD] rounded-2xl p-6 shadow-sm">
+                <div className="flex gap-2 mb-3">
+                  <span className="text-xl">✨</span>
+                  <div className="font-bold text-[16px] text-[#4B309B]">Gemini 종합 성과 리포트 (수정 가능)</div>
                 </div>
                 <textarea 
-                  className="w-full text-sm text-indigo-900 bg-white border border-indigo-100 rounded-lg p-3 leading-relaxed min-h-[180px] focus:outline-none focus:border-indigo-400 resize-y"
+                  className="w-full text-[15px] text-[#333D4B] bg-white border-none rounded-xl p-5 leading-relaxed min-h-[220px] focus:outline-none focus:ring-2 focus:ring-[#5C2BBD] resize-y shadow-sm"
                   value={report}
                   onChange={e => setReport(e.target.value)}
                 />
-                <div className="mt-3 flex justify-end">
-                  <button onClick={() => alert("✅ HR 담당자 대시보드로 보고서가 제출되었습니다.")} className="text-xs bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold px-4 py-2 rounded-lg hover:shadow-md transition-all">
+                <div className="mt-4 flex justify-end">
+                  <button onClick={() => alert("✅ HR 담당자 대시보드로 보고서가 제출되었습니다.")} className="text-[14px] bg-[#191F28] text-white font-bold px-5 py-3 rounded-xl hover:bg-[#333D4B] shadow-md transition-all">
                     HR 대시보드로 최종 제출
                   </button>
                 </div>
