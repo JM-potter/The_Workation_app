@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro-latest' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
 
     const prompt = `
 당신은 직원의 하루 업무를 요약하고 칭찬해주는 전문적이고 긍정적인 HR 어시스턴트입니다.
