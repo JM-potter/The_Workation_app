@@ -117,7 +117,10 @@ export default function MyWorkationPage() {
       });
       
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || '리포트 생성 실패');
+      if (!res.ok) {
+        const errorMsg = data.details ? `${data.error} (${data.details})` : (data.error || '리포트 생성 실패');
+        throw new Error(errorMsg);
+      }
       
       setReport(data.report);
     } catch (e: any) {
