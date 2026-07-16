@@ -31,6 +31,12 @@ export default function MyWorkationPage() {
     { id: 'slack', name: 'Slack', icon: '💬', usageMinutes: 0, lastActive: '-', status: 'disconnected', logs: [] as string[] },
     { id: 'github', name: 'GitHub', icon: '🐙', usageMinutes: 0, lastActive: '-', status: 'disconnected', logs: [] as string[] }
   ])
+  
+  // OKR & 컨디션 상태
+  const [okrGoal, setOkrGoal] = useState('결제 모듈 리팩토링 및 테스트 코드 작성')
+  const [okrProgress, setOkrProgress] = useState(65)
+  const [condition, setCondition] = useState('😊') // 😊, 😐, 😫
+
   const [report, setReport] = useState<string | null>(null)
   const [reportGenerating, setReportGenerating] = useState(false)
 
@@ -56,7 +62,8 @@ export default function MyWorkationPage() {
     setReport(null)
     setTimeout(() => {
       setReportGenerating(false)
-      setReport("오늘 " + (userName || "직원") + "님은 Slack을 통해 디자인 및 기획팀과 3건의 주요 커뮤니케이션을 진행하였으며(145분 활성), GitHub에서 대시보드 기능 구현 및 코드 리뷰 등 총 3건의 주요 개발 기여(210분 활성)를 하였습니다. 총 355분의 높은 딥워크(Deep Work) 시간을 기록하여 매우 훌륭한 업무 몰입도를 보였습니다.")
+      const conditionText = condition === '😊' ? '매우 좋음' : condition === '😐' ? '보통' : '주의(지침)';
+      setReport(`🎯 워케이션 핵심 목표: [${okrGoal}]\n▶ 현재 달성률: ${okrProgress}%\n\n📊 업무 툴(SaaS) 활동 내역:\n- Slack: 기획/디자인팀과 주요 커뮤니케이션 3건 (145분)\n- GitHub: 대시보드 기능 구현 및 PR 리뷰 등 개발 기여 3건 (210분)\n▶ 총 355분의 높은 딥워크(Deep Work) 시간 기록.\n\n🔋 번아웃 회복 지수 (오늘의 컨디션): ${conditionText}\n- 성공적이고 몰입도 높은 워케이션을 진행 중입니다.`)
     }, 2000)
   }
 
@@ -166,6 +173,59 @@ export default function MyWorkationPage() {
           </div>
           <h1 className="text-2xl font-black text-[#0F172A] mb-1">📶 마이 워케이션</h1>
           <p className="text-sm text-[#475569]">제휴 공간 전용 와이파이 근태 인증 및 업무 증빙</p>
+        </div>
+
+        {/* 🎯 0. 워케이션 마이크로 OKR 및 컨디션 */}
+        <div className="bg-white border border-[#E2E8F0] rounded-2xl p-6 mb-6 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-black text-base text-[#0F172A]">🎯 워케이션 마이크로 OKR</h2>
+            <span className="text-[10px] bg-blue-500/10 text-blue-600 px-2 py-0.5 rounded-full border border-blue-500/20 font-bold">
+              자기 주도 성과
+            </span>
+          </div>
+          
+          <div className="mb-5">
+            <label className="text-xs font-bold text-[#475569] block mb-1">이번 워케이션의 핵심 목표</label>
+            <input 
+              type="text" 
+              value={okrGoal} 
+              onChange={e => setOkrGoal(e.target.value)}
+              className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm font-semibold text-[#0F172A] focus:outline-none focus:border-blue-400 transition-colors"
+            />
+          </div>
+
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-bold text-[#475569] block">현재 목표 달성률</label>
+              <span className="text-sm font-black text-blue-600">{okrProgress}%</span>
+            </div>
+            <input 
+              type="range" 
+              min="0" max="100" 
+              value={okrProgress} 
+              onChange={e => setOkrProgress(Number(e.target.value))}
+              className="w-full accent-blue-600 h-2 bg-[#E2E8F0] rounded-lg appearance-none cursor-pointer"
+            />
+          </div>
+
+          <div className="border-t border-[#F1F5F9] pt-4 flex items-center justify-between">
+            <div className="text-xs font-bold text-[#475569]">오늘의 컨디션 (번아웃 체크)</div>
+            <div className="flex gap-2">
+              {['😊', '😐', '😫'].map(emoji => (
+                <button 
+                  key={emoji}
+                  onClick={() => setCondition(emoji)}
+                  className={`w-10 h-10 rounded-full text-xl flex items-center justify-center transition-all ${
+                    condition === emoji 
+                      ? 'bg-blue-100 border-2 border-blue-500 shadow-sm scale-110' 
+                      : 'bg-[#F8FAFC] border border-[#E2E8F0] grayscale opacity-60 hover:grayscale-0 hover:opacity-100'
+                  }`}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* 📶 1. 네트워크 근태 인증 시뮬레이터 */}
@@ -398,14 +458,16 @@ export default function MyWorkationPage() {
               <div className="bg-indigo-50/50 border border-indigo-100 rounded-xl p-4">
                 <div className="flex gap-2 mb-2">
                   <span className="text-lg">✨</span>
-                  <div className="font-bold text-sm text-indigo-900">AI가 요약한 오늘의 업무 성과</div>
+                  <div className="font-bold text-sm text-indigo-900">AI 종합 워케이션 성과 리포트 (수정 가능)</div>
                 </div>
-                <p className="text-sm text-indigo-800 leading-relaxed">
-                  {report}
-                </p>
+                <textarea 
+                  className="w-full text-sm text-indigo-900 bg-white border border-indigo-100 rounded-lg p-3 leading-relaxed min-h-[180px] focus:outline-none focus:border-indigo-400 resize-y"
+                  value={report}
+                  onChange={e => setReport(e.target.value)}
+                />
                 <div className="mt-3 flex justify-end">
-                  <button onClick={() => alert("✅ HR 담당자 대시보드로 보고서가 제출되었습니다.")} className="text-xs bg-white border border-indigo-200 text-indigo-600 font-bold px-3 py-1.5 rounded-lg hover:bg-indigo-50 transition-colors">
-                    HR 담당자에게 제출하기
+                  <button onClick={() => alert("✅ HR 담당자 대시보드로 보고서가 제출되었습니다.")} className="text-xs bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold px-4 py-2 rounded-lg hover:shadow-md transition-all">
+                    HR 대시보드로 최종 제출
                   </button>
                 </div>
               </div>

@@ -53,6 +53,35 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* 🎯 전사 워케이션 ROI 카드 */}
+        <div className="grid grid-cols-2 gap-5 mb-8">
+          <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl p-6 text-white shadow-lg relative overflow-hidden group">
+            <div className="absolute -right-10 -bottom-10 text-9xl opacity-10 group-hover:scale-110 transition-transform">🎯</div>
+            <div className="relative z-10">
+              <div className="flex justify-between items-start mb-4">
+                <span className="bg-white/20 px-3 py-1 rounded-full text-xs font-bold border border-white/30 backdrop-blur-sm">OKR 달성률</span>
+                <span className="text-blue-200 text-xs flex items-center gap-1">전월 대비 <span className="text-white font-bold">↑ 12%</span></span>
+              </div>
+              <div className="text-sm text-blue-100 mb-1">워케이션 평균 목표 달성률</div>
+              <div className="text-4xl font-black tracking-tight mb-2">92<span className="text-2xl font-bold ml-1">%</span></div>
+              <p className="text-xs text-blue-200 leading-relaxed max-w-[80%]">워케이션 참가자들의 스스로 설정한 목표 대비 매우 높은 성과를 달성하고 있습니다.</p>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl p-6 text-white shadow-lg relative overflow-hidden group">
+            <div className="absolute -right-10 -bottom-10 text-9xl opacity-10 group-hover:scale-110 transition-transform">🔋</div>
+            <div className="relative z-10">
+              <div className="flex justify-between items-start mb-4">
+                <span className="bg-white/20 px-3 py-1 rounded-full text-xs font-bold border border-white/30 backdrop-blur-sm">번아웃 회복 지수</span>
+                <span className="text-teal-100 text-xs flex items-center gap-1">전사 평균 <span className="text-white font-bold">78점</span></span>
+              </div>
+              <div className="text-sm text-teal-100 mb-1">참가자 스트레스 감소율</div>
+              <div className="text-4xl font-black tracking-tight mb-2">↓ 42<span className="text-2xl font-bold ml-1">%</span></div>
+              <p className="text-xs text-teal-100 leading-relaxed max-w-[80%]">워케이션 복귀 후 업무 의욕이 상승하며, 퇴사 리스크가 크게 감소하는 효과를 보입니다.</p>
+            </div>
+          </div>
+        </div>
+
         {/* All-in-One 공문서 자동화 (Auto-Docs) */}
         <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-8 mb-8 shadow-lg relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/20 blur-3xl rounded-full -translate-y-1/2 translate-x-1/2" />
