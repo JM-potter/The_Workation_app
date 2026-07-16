@@ -40,6 +40,8 @@ export default function MyWorkationPage() {
   const [githubUsername, setGithubUsername] = useState('')
   const [githubEvents, setGithubEvents] = useState<any[]>([])
   
+  const [slackRole, setSlackRole] = useState('')
+  
   const [report, setReport] = useState<string | null>(null)
   const [reportGenerating, setReportGenerating] = useState(false)
 
@@ -78,11 +80,22 @@ export default function MyWorkationPage() {
         setTools(prev => prev.map(t => t.id === id ? { ...t, status: 'disconnected' } : t));
       }
     } else {
-      // 기존 하드코딩 슬랙 로직
-      setTools(prev => prev.map(t => t.id === id ? { ...t, status: 'connecting' } : t))
-      setTimeout(() => {
-        setTools(prev => prev.map(t => t.id === id ? { ...t, status: 'connected', usageMinutes: 145, lastActive: '방금 전', logs: ['[10:00] 디자인팀 채널에 메시지 전송', '[11:30] 기획 회의 스레드 응답', '[14:15] 새로운 팀원 환영 인사'] } : t))
-      }, 1500)
+      // 고도화된 슬랙 시뮬레이션 로직
+      if (id === 'slack') {
+        if (!slackRole) {
+          alert('본인의 직무(예: 기획, 개발, 디자인)를 간단히 입력해주세요!');
+          return;
+        }
+        setTools(prev => prev.map(t => t.id === id ? { ...t, status: 'connecting' } : t))
+        setTimeout(() => {
+          const mockLogs = [
+            `[10:00] ${slackRole}팀 주간 회의 스레드 참석`,
+            `[13:30] 유관 부서에 업무 진행 상황 공유`,
+            `[15:15] 새로운 프로젝트 관련 자료 업로드`
+          ]
+          setTools(prev => prev.map(t => t.id === id ? { ...t, status: 'connected', usageMinutes: 145, lastActive: '방금 전', logs: mockLogs } : t))
+        }, 1500)
+      }
     }
   }
 
@@ -424,12 +437,19 @@ export default function MyWorkationPage() {
         {/* 📊 3. 업무 툴 연동 현황 */}
         <div className="bg-white rounded-[24px] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="font-bold text-[19px] text-[#191F28]">실시간 업무 툴 연동</h2>
+            <div className="flex items-center gap-3">
+              <h2 className="font-bold text-[19px] text-[#191F28]">실시간 업무 툴 연동</h2>
+              <div className="flex items-center gap-1 bg-[#F2F4F6] text-[#4E5968] px-2.5 py-1 rounded-full text-[12px] font-bold">
+                <span className="text-[14px]">🔒</span> 보안 연동 (Metadata Only)
+              </div>
+            </div>
             <span className="text-[12px] bg-[#E8F3FF] text-[#3182F6] px-3 py-1 rounded-full font-bold">
               Real-time API
             </span>
           </div>
-          <p className="text-[14px] text-[#8B95A1] mb-6">GitHub 실제 데이터를 불러옵니다.</p>
+          <p className="text-[14px] text-[#8B95A1] mb-6">
+            사내 메시지 내용이나 소스 코드는 <strong className="text-[#F04452]">절대 수집되지 않으며</strong>, 오직 활동 시간 정보만 안전하게 측정합니다.
+          </p>
           
           <div className="grid gap-4 mb-6">
             {tools.map(tool => (
@@ -458,6 +478,15 @@ export default function MyWorkationPage() {
                             placeholder="GitHub 아이디" 
                             value={githubUsername}
                             onChange={e => setGithubUsername(e.target.value)}
+                            className="bg-white border-none rounded-xl px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-[#3182F6] shadow-sm w-32"
+                          />
+                        )}
+                        {tool.id === 'slack' && (
+                          <input 
+                            type="text" 
+                            placeholder="직무 (예: 기획)" 
+                            value={slackRole}
+                            onChange={e => setSlackRole(e.target.value)}
                             className="bg-white border-none rounded-xl px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-[#3182F6] shadow-sm w-32"
                           />
                         )}
