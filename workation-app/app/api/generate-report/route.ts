@@ -20,8 +20,8 @@ export async function POST(request: Request) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    // 무료 티어 한도(limit: 0) 에러를 피하기 위해 가장 가벼운 lite 버전 사용
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
+    // 가장 가볍고 무료 티어가 넉넉한 2.0 lite 모델 사용
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite' });
 
     const prompt = `
 당신은 기업의 인사(HR) 및 성과 평가를 담당하는 전문적이고 분석적인 AI 어시스턴트입니다.
