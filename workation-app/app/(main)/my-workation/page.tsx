@@ -618,6 +618,24 @@ export default function MyWorkationPage() {
           </div>
         </div>
 
+        {/* 🖨️ 4. B2C 지자체 지원금 결과보고서 (개인 사비 결제자용) */}
+        <div className="bg-white border border-[#E2E8F0] rounded-2xl p-6 mt-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <h2 className="font-black text-base text-[#0F172A]">🧾 개인 지원금 신청용 서류 출력</h2>
+              <span className="text-[10px] bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded-full border border-emerald-500/20 font-bold">
+                B2C 개인 결제자 전용
+              </span>
+            </div>
+            <p className="text-xs text-[#94A3B8]">개인 사비로 결제하신 경우, 지자체에 제출할 [결제+증빙] 통합 서류를 한 번에 렌더링합니다.</p>
+          </div>
+          <Link href={`/dashboard/subsidy-report?user=${encodeURIComponent(userName)}`} target="_blank">
+            <button className="bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-colors shadow-sm whitespace-nowrap">
+              결과보고서 PDF 렌더링
+            </button>
+          </Link>
+        </div>
+
       </div>
 
       <Footer />
