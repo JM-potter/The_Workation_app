@@ -13,12 +13,7 @@ type ProofDoc = {
   created_at: string
 }
 
-type WorkTask = {
-  id: number
-  title: string
-  progress: number
-  comment: string
-}
+
 
 export default function MyWorkationPage() {
   const router = useRouter()
@@ -41,11 +36,7 @@ export default function MyWorkationPage() {
     { id: 'notion', name: 'Notion', icon: '📓', usageMinutes: 0, lastActive: '-', status: 'disconnected', logs: [] as string[] }
   ])
   
-  // OKR 다중 태스크 상태
-  const [tasks, setTasks] = useState<WorkTask[]>([
-    { id: Date.now(), title: '결제 모듈 리팩토링 및 테스트 코드 작성', progress: 65, comment: '' }
-  ])
-  const okrProgress = Math.round(tasks.reduce((sum, t) => sum + t.progress, 0) / (tasks.length || 1))
+
 
   const [condition, setCondition] = useState('😊') // 😊, 😐, 😫
 
@@ -242,7 +233,6 @@ export default function MyWorkationPage() {
         body: JSON.stringify({
           workationGoals,
           notionLogs: tools.find(t => t.id === 'notion')?.logs || [],
-          tasks,
           condition: condition === '😊' ? '최상' : condition === '😐' ? '보통' : '지침',
           githubUsername,
           githubEvents
@@ -420,78 +410,15 @@ export default function MyWorkationPage() {
           </div>
         )}
 
-        {/* 🎯 0. 워케이션 마이크로 태스크 관리 */}
+        {/* 🎯 오늘의 컨디션 체크 */}
         <div className="bg-gradient-to-br from-[#F8FAFC] to-[#F1F5F9] border border-white rounded-[32px] p-8 mb-6 shadow-[0_10px_40px_rgb(0,0,0,0.06)] relative overflow-hidden">
           {/* 장식용 블러 원형 */}
           <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-400/20 rounded-full blur-3xl pointer-events-none" />
           
-          <div className="flex items-center justify-between mb-6 relative z-10">
-            <h2 className="font-bold text-[20px] text-[#0F172A] flex items-center gap-2">
-              <span className="text-2xl drop-shadow-md">🎯</span> 나의 태스크 보드
-            </h2>
-            <div className="flex items-center gap-4">
-              <span className="text-[14px] font-bold text-[#475569]">전체 달성률</span>
-              <span className="text-[28px] font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 drop-shadow-sm">{okrProgress}%</span>
-            </div>
-          </div>
-          
-          <div className="mb-8 relative z-10 space-y-4">
-            {tasks.map((task, index) => (
-              <div key={task.id} className="bg-white border border-slate-200 rounded-[20px] p-5 shadow-sm transition-all hover:shadow-md">
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="text-indigo-500 font-bold text-sm">#{index + 1}</span>
-                  <input 
-                    type="text" 
-                    value={task.title} 
-                    onChange={e => setTasks(tasks.map(t => t.id === task.id ? { ...t, title: e.target.value } : t))}
-                    className="flex-1 bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5 text-[15px] font-bold text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white transition-all placeholder-slate-400"
-                    placeholder="오늘 완수할 태스크를 입력하세요"
-                  />
-                  {tasks.length > 1 && (
-                    <button 
-                      onClick={() => setTasks(tasks.filter(t => t.id !== task.id))}
-                      className="text-slate-300 hover:text-red-500 transition-colors p-2 text-xl"
-                    >
-                      ×
-                    </button>
-                  )}
-                </div>
-                
-                <div className="flex items-center gap-4 mb-2">
-                  <input 
-                    type="range" 
-                    min="0" max="100" 
-                    value={task.progress} 
-                    onChange={e => setTasks(tasks.map(t => t.id === task.id ? { ...t, progress: Number(e.target.value) } : t))}
-                    className="flex-1 accent-indigo-600 h-2.5 bg-slate-100 rounded-full appearance-none cursor-pointer shadow-inner"
-                  />
-                  <span className={`font-black w-12 text-right ${task.progress === 100 ? 'text-emerald-500' : 'text-indigo-600'}`}>{task.progress}%</span>
-                </div>
-                
-                {task.progress < 100 && (
-                  <div className="mt-3">
-                    <input 
-                      type="text" 
-                      value={task.comment}
-                      onChange={e => setTasks(tasks.map(t => t.id === task.id ? { ...t, comment: e.target.value } : t))}
-                      className="w-full bg-orange-50 border border-orange-100 rounded-xl px-4 py-2.5 text-[13px] text-orange-800 placeholder-orange-300/80 focus:outline-none focus:ring-2 focus:ring-orange-400/20 transition-all"
-                      placeholder="💡 미달성 사유나 내일의 계획을 짧게 적어주세요 (선택)"
-                    />
-                  </div>
-                )}
-              </div>
-            ))}
-            
-            <button 
-              onClick={() => setTasks([...tasks, { id: Date.now(), title: '', progress: 0, comment: '' }])}
-              className="w-full py-4 border-2 border-dashed border-indigo-200 rounded-[20px] text-indigo-500 font-bold hover:bg-indigo-50 hover:border-indigo-300 transition-all flex items-center justify-center gap-2"
-            >
-              <span className="text-lg">➕</span> 새로운 태스크 추가
-            </button>
-          </div>
-
           <div className="bg-white/80 backdrop-blur-md border border-white rounded-[24px] p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm relative z-10">
-            <div className="text-[15px] font-bold text-[#334155]">오늘의 컨디션 어떠신가요?</div>
+            <div className="text-[15px] font-bold text-[#334155] flex items-center gap-2">
+              <span className="text-xl">🌡️</span> 오늘의 컨디션 어떠신가요?
+            </div>
             <div className="flex gap-3">
               {['😊', '😐', '😫'].map(emoji => (
                 <button 
