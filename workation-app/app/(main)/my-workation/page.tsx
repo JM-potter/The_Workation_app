@@ -150,7 +150,7 @@ export default function MyWorkationPage() {
         const displayEvents = [...validEvents].reverse().slice(0, 10);
         setGithubEvents(displayEvents);
 
-        setTools(prev => prev.map(t => t.id === id ? { 
+        setTools(prev => prev.map(t => t.id === toolId ? { 
           ...t, 
           status: 'connected', 
           usageMinutes, 
@@ -159,23 +159,23 @@ export default function MyWorkationPage() {
         } : t));
       } catch (e: any) {
         alert(e.message);
-        setTools(prev => prev.map(t => t.id === id ? { ...t, status: 'disconnected' } : t));
+        setTools(prev => prev.map(t => t.id === toolId ? { ...t, status: 'disconnected' } : t));
       }
     } else {
       // 고도화된 슬랙 시뮬레이션 로직
-      if (id === 'slack') {
+      if (toolId === 'slack') {
         if (!slackRole) {
           alert('본인의 직무(예: 기획, 개발, 디자인)를 간단히 입력해주세요!');
           return;
         }
-        setTools(prev => prev.map(t => t.id === id ? { ...t, status: 'connecting' } : t))
+        setTools(prev => prev.map(t => t.id === toolId ? { ...t, status: 'connecting' } : t))
         setTimeout(() => {
           const mockLogs = [
             `[10:00] ${slackRole}팀 주간 회의 스레드 참석`,
             `[13:30] 유관 부서에 업무 진행 상황 공유`,
             `[15:15] 새로운 프로젝트 관련 자료 업로드`
           ]
-          setTools(prev => prev.map(t => t.id === id ? { ...t, status: 'connected', usageMinutes: 145, lastActive: '방금 전', logs: mockLogs } : t))
+          setTools(prev => prev.map(t => t.id === toolId ? { ...t, status: 'connected', usageMinutes: 145, lastActive: '방금 전', logs: mockLogs } : t))
         }, 1500)
       }
     }
