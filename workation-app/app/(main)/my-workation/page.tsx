@@ -124,17 +124,31 @@ export default function MyWorkationPage() {
   }, [notionToken]);
 
   const handleNotionConnect = async () => {
-    const token = window.prompt(
-      '노션 연동을 위한 개인 엑세스 토큰(ntn_...)을 입력해주세요.\n발급처: https://app.notion.com/developers/tokens'
+    // 1. 노션 OAuth 공식 팝업 열기 (정식 런칭 모드)
+    const width = 600;
+    const height = 700;
+    const left = window.screen.width / 2 - width / 2;
+    const top = window.screen.height / 2 - height / 2;
+    
+    const popup = window.open(
+      '/api/auth/notion',
+      'Notion Auth',
+      `width=${width},height=${height},left=${left},top=${top}`
     );
 
-    if (!token) {
-      alert('토큰 입력이 취소되었습니다.');
-      return;
-    }
-
-    setNotionToken(token.trim());
-    await fetchNotionData(token.trim(), true);
+    // 2. 팝업(callback 라우트)에서 보내는 비밀 메시지 수신 대기
+    const messageListener = async (event: MessageEvent) => {
+      if (event.data?.type === 'NOTION_AUTH_SUCCESS') {
+        const token = event.data.token;
+        window.removeEventListener('message', messageListener);
+        
+        // 3. 토큰을 저장하고 실시간 추적 엔진 가동
+        setNotionToken(token.trim());
+        await fetchNotionData(token.trim(), true);
+      }
+    };
+    
+    window.addEventListener('message', messageListener);
   }
 
   const handleConnectTool = async (toolId: string) => {
