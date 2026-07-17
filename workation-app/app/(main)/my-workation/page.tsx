@@ -57,20 +57,16 @@ export default function MyWorkationPage() {
   const [report, setReport] = useState<string | null>(null)
   const [reportGenerating, setReportGenerating] = useState(false)
 
-  const handleNotionConnect = async () => {
-    // 최근 노션 업데이트로 인해 OAuth보다 직관적인 PAT(Personal Access Token) 방식을 사용합니다.
-    const token = window.prompt(
-      '노션 연동을 위한 개인 엑세스 토큰(ntn_...)을 입력해주세요.\n발급처: https://app.notion.com/developers/tokens'
-    );
+  // 노션 실시간 체류 시간 측정(Polling)용 상태
+  const [notionToken, setNotionToken] = useState<string | null>(null)
+  const [notionPagesState, setNotionPagesState] = useState<any[]>([])
 
-    if (!token) {
-      alert('토큰 입력이 취소되었습니다.');
-      return;
-    }
-
-    setTools(prev => prev.map(t => t.id === 'notion' ? { ...t, status: 'connecting' } : t));
-
+  const fetchNotionData = async (token: string, isManualRefresh = false) => {
     try {
+      if (isManualRefresh) {
+        setTools(prev => prev.map(t => t.id === 'notion' ? { ...t, status: 'connecting' } : t));
+      }
+
       const res = await fetch('/api/notion/activity', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -81,27 +77,64 @@ export default function MyWorkationPage() {
       const data = await res.json();
       
       if (data.pages && data.pages.length > 0) {
-        setTools(tools.map(t => t.id === 'notion' ? {
-          ...t,
-          status: 'connected',
-          usageMinutes: data.pages.length * 30, // 예시: 페이지당 30분
-          lastActive: '방금 전',
-          logs: data.pages.map((p: any) => `수정: ${p.title}`)
-        } : t));
+        setNotionPagesState(prevPages => {
+          let additionalMinutes = 0;
+          const isInitialLoad = prevPages.length === 0;
+
+          if (isInitialLoad) {
+            additionalMinutes = data.pages.length * 5; // 최초 연동 시 문서당 기본 5분 부여
+          } else {
+            // 변경된(최근 수정 시간이 더 최신인) 문서 찾기
+            data.pages.forEach((newPage: any) => {
+              const oldPage = prevPages.find(p => p.id === newPage.id);
+              if (!oldPage || new Date(newPage.last_edited_time) > new Date(oldPage.last_edited_time)) {
+                additionalMinutes += 1; // 수정 감지 시 1분(또는 지정된 갱신주기) 추가
+              }
+            });
+          }
+
+          setTools(prevTools => prevTools.map(t => t.id === 'notion' ? {
+            ...t,
+            status: 'connected',
+            usageMinutes: t.usageMinutes + additionalMinutes,
+            lastActive: '방금 전',
+            logs: data.pages.map((p: any) => `[${new Date(p.last_edited_time).toLocaleTimeString('ko-KR', {hour: '2-digit', minute:'2-digit'})}] 수정: ${p.title}`)
+          } : t));
+
+          return data.pages; // 새로운 페이지 상태로 업데이트
+        });
       } else {
-        setTools(tools.map(t => t.id === 'notion' ? {
-          ...t,
-          status: 'connected',
-          usageMinutes: 0,
-          lastActive: '기록 없음',
-          logs: ['(주의) 토큰은 유효하지만, 아직 노션 페이지 우측 상단 메뉴(•••)에서 "연결 추가(Add connections)"로 통합을 초대하지 않았거나, 오늘 수정된 페이지가 없습니다.']
-        } : t));
+        if (isManualRefresh) {
+          setTools(prev => prev.map(t => t.id === 'notion' ? { ...t, status: 'connected' } : t));
+        }
       }
     } catch (error) {
       console.error(error);
-      alert('노션 데이터를 가져오는데 실패했습니다. 토큰이 유효한지 확인해주세요.');
-      setTools(prev => prev.map(t => t.id === 'notion' ? { ...t, status: 'disconnected' } : t));
+      if (isManualRefresh) alert('노션 데이터를 갱신하는데 실패했습니다.');
     }
+  }
+
+  // 1분(60초)마다 노션 백그라운드 Polling
+  useEffect(() => {
+    if (!notionToken) return;
+    const interval = setInterval(() => {
+      fetchNotionData(notionToken, false);
+    }, 60000); // 1분
+    return () => clearInterval(interval);
+  }, [notionToken]);
+
+  const handleNotionConnect = async () => {
+    const token = window.prompt(
+      '노션 연동을 위한 개인 엑세스 토큰(ntn_...)을 입력해주세요.\n발급처: https://app.notion.com/developers/tokens'
+    );
+
+    if (!token) {
+      alert('토큰 입력이 취소되었습니다.');
+      return;
+    }
+
+    setNotionToken(token.trim());
+    await fetchNotionData(token.trim(), true);
   }
 
   const handleConnectTool = async (toolId: string) => {
@@ -643,9 +676,20 @@ export default function MyWorkationPage() {
                     ) : tool.status === 'connecting' ? (
                       <div className="w-6 h-6 border-3 border-[#3182F6] border-t-transparent rounded-full animate-spin" />
                     ) : (
-                      <div className="text-right">
-                        <div className="text-xl font-black text-[#191F28] tracking-tight">{formatMinutes(tool.usageMinutes)}</div>
-                        <div className="text-[12px] text-[#8B95A1] font-medium mt-0.5">오늘 자동 측정된 시간</div>
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <div className="text-xl font-black text-[#191F28] tracking-tight">{formatMinutes(tool.usageMinutes)}</div>
+                          <div className="text-[12px] text-[#8B95A1] font-medium mt-0.5">오늘 자동 측정된 시간</div>
+                        </div>
+                        {tool.id === 'notion' && (
+                          <button 
+                            onClick={() => fetchNotionData(notionToken!, true)}
+                            className="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 p-2.5 rounded-xl transition-all shadow-sm flex items-center justify-center group"
+                            title="즉시 최신화 (새치기 갱신)"
+                          >
+                            <span className="text-lg group-active:rotate-180 transition-transform duration-300">🔄</span>
+                          </button>
+                        )}
                       </div>
                     )}
                   </div>
