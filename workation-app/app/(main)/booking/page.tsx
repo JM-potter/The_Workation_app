@@ -43,6 +43,7 @@ function BookingContent() {
   const [checkOut, setCheckOut]     = useState('')
   const [useSubsidy, setUseSubsidy] = useState(true)
   const [saving, setSaving]         = useState(false)
+  const [paymentType, setPaymentType] = useState<'corporate' | 'personal'>('corporate')
 
   useEffect(() => {
     if (!accId) return
@@ -80,6 +81,7 @@ function BookingContent() {
       guests,
       total_price:      finalTotal,
       status:           'confirmed',
+      payment_type:     paymentType,
     })
     setSaving(false)
     if (error) {
@@ -251,7 +253,29 @@ function BookingContent() {
                 <span>최종 결제 금액</span>
                 <span className="text-blue-500 text-lg">{finalTotal.toLocaleString()}원</span>
               </div>
-              <p className="text-xs text-[#94A3B8] text-right">회사 예산에서 차감됩니다</p>
+            </div>
+
+            <div className="bg-[#F1F5F9] rounded-xl p-4 flex flex-col gap-3 text-sm">
+              <h3 className="font-bold text-[#0F172A] mb-1">결제 방식 선택</h3>
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setPaymentType('corporate')}
+                  className={`flex-1 py-3 rounded-xl font-bold border-2 transition-all ${paymentType === 'corporate' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-[#E2E8F0] bg-white text-[#475569]'}`}
+                >
+                  🏢 회사 예산 결제
+                </button>
+                <button 
+                  onClick={() => setPaymentType('personal')}
+                  className={`flex-1 py-3 rounded-xl font-bold border-2 transition-all ${paymentType === 'personal' ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-[#E2E8F0] bg-white text-[#475569]'}`}
+                >
+                  💳 개인 사비 결제
+                </button>
+              </div>
+              <p className="text-xs text-[#94A3B8] mt-1 text-center">
+                {paymentType === 'corporate' 
+                  ? '💡 결제 금액이 회사 예산에서 차감되며, 지자체 지원금은 회사로 환급됩니다.' 
+                  : '💡 개인 사비로 결제하며, 지자체 지원금은 워케이션 종료 후 개인 계좌로 환급됩니다.'}
+              </p>
             </div>
 
             <div className="flex gap-3">

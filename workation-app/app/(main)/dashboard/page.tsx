@@ -52,7 +52,8 @@ export default function DashboardPage() {
   }, [])
   
   const confirmedBookings = bookings.filter(b => b.status === 'confirmed')
-  const totalAmount       = confirmedBookings.reduce((s, b) => s + b.total_price, 0)
+  const corporateBookings = confirmedBookings.filter(b => b.payment_type !== 'personal')
+  const totalAmount       = corporateBookings.reduce((s, b) => s + b.total_price, 0)
   const totalGuests       = confirmedBookings.reduce((s, b) => s + b.guests, 0)
 
   const budgetTotal = 5000000
@@ -267,13 +268,20 @@ export default function DashboardPage() {
                       }`}>
                         {b.status === 'confirmed' ? '예약 확정' : '대기중'}
                       </span>
+                      {b.payment_type === 'personal' ? (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-600">개인 사비</span>
+                      ) : (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-600">회사 예산</span>
+                      )}
                     </div>
                     <div className="text-xs text-slate-600 font-medium">{b.accommodations.name}</div>
                     <div className="text-[11px] text-slate-400 mt-0.5">{b.start_date} ~ {b.end_date} ({b.guests}명)</div>
                   </div>
                   <div className="text-right">
                     <div className="font-black text-slate-700 text-sm">{b.total_price.toLocaleString()}원</div>
-                    <div className="text-[10px] text-slate-400 mt-0.5">회사 예산 차감</div>
+                    <div className="text-[10px] text-slate-400 mt-0.5">
+                      {b.payment_type === 'personal' ? '직접 결제' : '회사 예산 차감'}
+                    </div>
                   </div>
                 </div>
               ))}
