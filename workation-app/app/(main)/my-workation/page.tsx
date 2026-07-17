@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import Header from '@/components/ui/Header'
 import Footer from '@/components/ui/Footer'
 import { supabase, BYPASS_AUTH } from '@/lib/supabase'
@@ -13,6 +14,7 @@ type ProofDoc = {
 }
 
 export default function MyWorkationPage() {
+  const router = useRouter()
   const [userId, setUserId] = useState<string | null>(null)
   const [userName, setUserName] = useState('')
   
@@ -146,6 +148,27 @@ export default function MyWorkationPage() {
     } finally {
       setReportGenerating(false)
     }
+  }
+
+  const handleSubmitReport = async () => {
+    if (!report) return;
+    
+    const githubMins = tools.find(t => t.id === 'github')?.usageMinutes || 0;
+    
+    const { error } = await supabase.from('ai_reports').insert({
+      user_id: userId,
+      github_id: githubUsername,
+      report_text: report,
+      github_minutes: githubMins
+    });
+    
+    if (error) {
+      alert("리포트 저장 실패: " + error.message);
+      return;
+    }
+    
+    alert("✅ HR 담당자 대시보드로 보고서가 제출되었습니다.");
+    router.push('/dashboard/report');
   }
 
   useEffect(() => {
@@ -586,7 +609,7 @@ export default function MyWorkationPage() {
                   onChange={e => setReport(e.target.value)}
                 />
                 <div className="mt-5 flex justify-end">
-                  <button onClick={() => alert("✅ HR 담당자 대시보드로 보고서가 제출되었습니다.")} className="text-[15px] bg-slate-800 text-white font-bold px-6 py-3.5 rounded-full hover:bg-slate-900 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                  <button onClick={handleSubmitReport} className="text-[15px] bg-slate-800 text-white font-bold px-6 py-3.5 rounded-full hover:bg-slate-900 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                     HR 대시보드로 최종 제출
                   </button>
                 </div>

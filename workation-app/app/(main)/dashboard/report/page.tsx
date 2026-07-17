@@ -49,6 +49,7 @@ export default function ReportPage() {
   const [aiSummary,  setAiSummary]  = useState('')
   const [aiLoading,  setAiLoading]  = useState(false)
   const [aiError,    setAiError]    = useState('')
+  const [aiReports,  setAiReports]  = useState<any[]>([])
 
   useEffect(() => {
     // Hardcoded mock data bypasses fetch
@@ -63,6 +64,15 @@ export default function ReportPage() {
     ])
     setCompany('더 워케이션 데모 기업')
     setLoading(false)
+
+    // 실제 제출된 리포트 DB에서 불러오기
+    supabase
+      .from('ai_reports')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        if (data) setAiReports(data)
+      })
   }, [])
 
   const confirmed = bookings
@@ -382,6 +392,37 @@ export default function ReportPage() {
             <div className="text-2xl font-black text-purple-600 mt-auto">
               {(subsidySaved/10000).toLocaleString()}만원 <span className="text-xs font-normal text-slate-400">확보</span>
             </div>
+          </div>
+        </div>
+
+        {/* 4. 직원별 AI 업무 리포트 (실제 DB 연동) */}
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+          <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-black text-slate-800">🧑‍💻 임직원 업무 성과 리포트</h3>
+              <p className="text-xs text-slate-500 mt-1">현장에서 실시간으로 제출된 AI 요약 리포트입니다.</p>
+            </div>
+            <span className="bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full">{aiReports.length}건 제출됨</span>
+          </div>
+          <div className="p-6">
+            {aiReports.length === 0 ? (
+              <div className="text-center py-10 text-slate-400 font-medium">아직 제출된 리포트가 없습니다.</div>
+            ) : (
+              <div className="grid gap-4">
+                {aiReports.map((report: any) => (
+                  <div key={report.id} className="bg-slate-50 rounded-2xl p-6 border border-slate-200">
+                    <div className="flex justify-between items-center mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-slate-800">GitHub: {report.github_id || '미등록'}</span>
+                        <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold">개발 집중 {report.github_minutes || 0}분</span>
+                      </div>
+                      <span className="text-xs font-semibold text-slate-400">{new Date(report.created_at).toLocaleString()}</span>
+                    </div>
+                    <p className="text-[14px] text-slate-700 leading-relaxed whitespace-pre-wrap">{report.report_text}</p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

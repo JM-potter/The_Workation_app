@@ -18,18 +18,7 @@ export default function LoginPage() {
     setError('')
     setLoading(true)
 
-    if (BYPASS_AUTH) {
-      setTimeout(() => {
-        setLoading(false)
-        if (email.includes('hr') || email.includes('admin')) {
-          router.push('/dashboard')
-        } else {
-          router.push('/select')
-        }
-      }, 500)
-      return
-    }
-
+    // BYPASS_AUTH 로직이 삭제되었습니다.
     const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password })
     setLoading(false)
     if (authError) {
