@@ -5,7 +5,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { workationGoals, notionLogs, condition, githubUsername, githubEvents } = body;
+    const { workationGoals, notionLogs, slackLogs, condition, githubUsername, githubEvents } = body;
 
     const apiKey = process.env.GEMINI_API_KEY;
 
@@ -21,13 +21,15 @@ export async function POST(request: Request) {
 
     const prompt = `
 당신은 기업의 인사(HR) 및 성과 평가를 담당하는 전문적이고 분석적인 AI 어시스턴트입니다.
-사용자가 제출한 데이터(초기 목표, 노션/깃허브 활동 로그)를 바탕으로 데이터 기반의 객관적이고 가독성이 뛰어난 성과 리포트를 작성해주세요.
+사용자가 제출한 데이터(초기 목표, 노션/깃허브/슬랙 활동 로그)를 바탕으로 데이터 기반의 객관적이고 가독성이 뛰어난 성과 리포트를 작성해주세요.
 
 [입력 데이터]
 - 이번 워케이션 핵심 목표: ${workationGoals && workationGoals.length > 0 ? workationGoals.join(', ') : '없음'}
 - 오늘의 컨디션: ${condition}
 - 실시간 노션(Notion) 문서 작업 기록 (수정 내역):
 ${notionLogs && notionLogs.length > 0 ? notionLogs.join('\n') : '  노션 연동 기록 없음'}
+- 실시간 슬랙(Slack) 협업 기록 (본문 제외 메타데이터):
+${slackLogs && slackLogs.length > 0 ? slackLogs.join('\n') : '  슬랙 연동 기록 없음'}
 - 실시간 깃허브(GitHub) 활동 기록 (최대 10건):
 ${githubEvents && githubEvents.length > 0 ? githubEvents.map((e: any, i: number) => `  ${i + 1}. [${e.type}] ${e.repo.name}`).join('\n') : '  깃허브 연동 기록 없음'}
 

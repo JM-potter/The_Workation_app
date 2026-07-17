@@ -43,14 +43,13 @@ export default function MyWorkationPage() {
   const [githubUsername, setGithubUsername] = useState('')
   const [githubEvents, setGithubEvents] = useState<any[]>([])
   
-  const [slackRole, setSlackRole] = useState('')
-  
   const [report, setReport] = useState<string | null>(null)
   const [reportGenerating, setReportGenerating] = useState(false)
 
-  // 노션 실시간 체류 시간 측정(Polling)용 상태
+  // 노션, 슬랙 실시간 체류 시간 측정(Polling)용 상태
   const [notionToken, setNotionToken] = useState<string | null>(null)
   const [notionPagesState, setNotionPagesState] = useState<any[]>([])
+  const [slackToken, setSlackToken] = useState<string | null>(null)
 
   // 예약 시 설정한 워케이션 목표 상태
   const [workationGoals, setWorkationGoals] = useState<string[]>([])
@@ -108,14 +107,46 @@ export default function MyWorkationPage() {
     }
   }
 
-  // 1분(60초)마다 노션 백그라운드 Polling
+  const fetchSlackData = async (token: string, isManualRefresh = false) => {
+    try {
+      if (isManualRefresh) {
+        setTools(prev => prev.map(t => t.id === 'slack' ? { ...t, status: 'connecting' } : t));
+      }
+      const res = await fetch('/api/slack/activity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: token.trim() })
+      });
+      if (!res.ok) throw new Error('Failed to fetch Slack activity');
+      const data = await res.json();
+      
+      if (data.logs && data.logs.length > 0) {
+        setTools(prevTools => prevTools.map(t => t.id === 'slack' ? {
+          ...t,
+          status: 'connected',
+          usageMinutes: data.logs.length * 3, // 메시지 1건당 집중 시간 3분으로 가정
+          lastActive: '방금 전',
+          logs: data.logs
+        } : t));
+      } else {
+        if (isManualRefresh) {
+          setTools(prev => prev.map(t => t.id === 'slack' ? { ...t, status: 'connected', logs: ['오늘의 활동 내역이 없습니다.'] } : t));
+        }
+      }
+    } catch (error) {
+      console.error(error);
+      if (isManualRefresh) alert('슬랙 데이터를 갱신하는데 실패했습니다.');
+    }
+  }
+
+  // 1분마다 노션/슬랙 백그라운드 Polling
   useEffect(() => {
-    if (!notionToken) return;
     const interval = setInterval(() => {
-      fetchNotionData(notionToken, false);
+      if (notionToken) fetchNotionData(notionToken, false);
+      if (slackToken) fetchSlackData(slackToken, false);
     }, 60000); // 1분
     return () => clearInterval(interval);
-  }, [notionToken]);
+  }, [notionToken, slackToken]);
 
   const handleNotionConnect = async () => {
     // 1. 노션 OAuth 공식 팝업 열기 (정식 런칭 모드)
@@ -139,6 +170,31 @@ export default function MyWorkationPage() {
         // 3. 토큰을 저장하고 실시간 추적 엔진 가동
         setNotionToken(token.trim());
         await fetchNotionData(token.trim(), true);
+      }
+    };
+    
+    window.addEventListener('message', messageListener);
+  }
+
+  const handleSlackConnect = async () => {
+    const width = 600;
+    const height = 700;
+    const left = window.screen.width / 2 - width / 2;
+    const top = window.screen.height / 2 - height / 2;
+    
+    window.open(
+      '/api/auth/slack',
+      'Slack Auth',
+      `width=${width},height=${height},left=${left},top=${top}`
+    );
+
+    const messageListener = async (event: MessageEvent) => {
+      if (event.data?.type === 'SLACK_AUTH_SUCCESS') {
+        const token = event.data.token;
+        window.removeEventListener('message', messageListener);
+        
+        setSlackToken(token.trim());
+        await fetchSlackData(token.trim(), true);
       }
     };
     
@@ -202,23 +258,8 @@ export default function MyWorkationPage() {
         alert(e.message);
         setTools(prev => prev.map(t => t.id === toolId ? { ...t, status: 'disconnected' } : t));
       }
-    } else {
-      // 고도화된 슬랙 시뮬레이션 로직
-      if (toolId === 'slack') {
-        if (!slackRole) {
-          alert('본인의 직무(예: 기획, 개발, 디자인)를 간단히 입력해주세요!');
-          return;
-        }
-        setTools(prev => prev.map(t => t.id === toolId ? { ...t, status: 'connecting' } : t))
-        setTimeout(() => {
-          const mockLogs = [
-            `[10:00] ${slackRole}팀 주간 회의 스레드 참석`,
-            `[13:30] 유관 부서에 업무 진행 상황 공유`,
-            `[15:15] 새로운 프로젝트 관련 자료 업로드`
-          ]
-          setTools(prev => prev.map(t => t.id === toolId ? { ...t, status: 'connected', usageMinutes: 145, lastActive: '방금 전', logs: mockLogs } : t))
-        }, 1500)
-      }
+    } else if (toolId === 'slack') {
+      handleSlackConnect();
     }
   }
 
@@ -233,6 +274,7 @@ export default function MyWorkationPage() {
         body: JSON.stringify({
           workationGoals,
           notionLogs: tools.find(t => t.id === 'notion')?.logs || [],
+          slackLogs: tools.find(t => t.id === 'slack')?.logs || [],
           condition: condition === '😊' ? '최상' : condition === '😐' ? '보통' : '지침',
           githubUsername,
           githubEvents
@@ -636,15 +678,6 @@ export default function MyWorkationPage() {
                             className="bg-white border-none rounded-xl px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-[#3182F6] shadow-sm w-32"
                           />
                         )}
-                        {tool.id === 'slack' && (
-                          <input 
-                            type="text" 
-                            placeholder="직무 (예: 기획)" 
-                            value={slackRole}
-                            onChange={e => setSlackRole(e.target.value)}
-                            className="bg-white border-none rounded-xl px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-[#3182F6] shadow-sm w-32"
-                          />
-                        )}
                         <button onClick={() => handleConnectTool(tool.id)} className="text-[14px] font-bold bg-[#3182F6] text-white px-4 py-2 rounded-xl hover:bg-[#1B64DA] transition-all shadow-sm">
                           연동하기
                         </button>
@@ -657,9 +690,12 @@ export default function MyWorkationPage() {
                           <div className="text-xl font-black text-[#191F28] tracking-tight">{formatMinutes(tool.usageMinutes)}</div>
                           <div className="text-[12px] text-[#8B95A1] font-medium mt-0.5">오늘 자동 측정된 시간</div>
                         </div>
-                        {tool.id === 'notion' && (
+                        {(tool.id === 'notion' || tool.id === 'slack') && (
                           <button 
-                            onClick={() => fetchNotionData(notionToken!, true)}
+                            onClick={() => {
+                              if (tool.id === 'notion' && notionToken) fetchNotionData(notionToken, true)
+                              if (tool.id === 'slack' && slackToken) fetchSlackData(slackToken, true)
+                            }}
                             className="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 p-2.5 rounded-xl transition-all shadow-sm flex items-center justify-center group"
                             title="즉시 최신화 (새치기 갱신)"
                           >
