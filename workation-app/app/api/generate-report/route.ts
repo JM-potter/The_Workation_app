@@ -20,8 +20,8 @@ export async function POST(request: Request) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    // 무료 티어에서 가장 똑똑한 플래시 모델로 고정 (서버가 바쁠 땐 503 에러가 날 수 있음)
-    const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
+    // 가장 가볍고 서버 트래픽 부하가 적은 라이트(Lite) 모델로 세팅
+    const model = genAI.getGenerativeModel({ model: 'gemini-flash-lite-latest' });
 
     const prompt = `
 당신은 기업의 인사(HR) 및 성과 평가를 담당하는 전문적이고 분석적인 AI 어시스턴트입니다.
