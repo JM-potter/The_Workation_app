@@ -5,7 +5,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { okrGoal, okrProgress, condition, githubUsername, githubEvents } = body;
+    const { tasks, condition, githubUsername, githubEvents } = body;
 
     const apiKey = process.env.GEMINI_API_KEY;
 
@@ -24,7 +24,8 @@ export async function POST(request: Request) {
 아래 제공된 데이터를 바탕으로, 직원이 하루를 성공적으로 마무리했다는 느낌이 들도록 깔끔하게 요약된 성과 리포트를 작성해주세요.
 
 [입력 데이터]
-- 워케이션 목표: ${okrGoal} (현재 달성률: ${okrProgress}%)
+- 오늘의 업무(태스크) 리스트 및 달성 현황:
+${tasks.map((t: any, i: number) => `${i + 1}. ${t.title} (달성률: ${t.progress}%)${t.comment ? ` - 코멘트/지연사유: ${t.comment}` : ''}`).join('\n')}
 - 오늘의 컨디션: ${condition} (😊: 최상, 😐: 보통, 😫: 지침)
 - 연동된 GitHub 아이디: ${githubUsername}
 - 오늘 수행한 깃허브 주요 활동 (최대 10개 이벤트):
