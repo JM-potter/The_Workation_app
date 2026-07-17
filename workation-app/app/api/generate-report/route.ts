@@ -5,7 +5,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { tasks, condition, githubUsername, githubEvents } = body;
+    const { workationGoals, notionLogs, tasks, condition, githubUsername, githubEvents } = body;
 
     const apiKey = process.env.GEMINI_API_KEY;
 
@@ -20,24 +20,25 @@ export async function POST(request: Request) {
     const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
 
     const prompt = `
-당신은 직원의 하루 업무를 요약하고 칭찬해주는 전문적이고 긍정적인 HR 어시스턴트입니다.
-아래 제공된 데이터를 바탕으로, 직원이 하루를 성공적으로 마무리했다는 느낌이 들도록 깔끔하게 요약된 성과 리포트를 작성해주세요.
+당신은 기업의 인사(HR) 및 성과 평가를 담당하는 전문적이고 분석적인 AI 어시스턴트입니다.
+사용자가 제출한 데이터(초기 목표, 당일 태스크, 노션/깃허브 활동 로그)를 바탕으로 데이터 기반의 객관적이고 가독성이 뛰어난 성과 리포트를 작성해주세요.
 
 [입력 데이터]
-- 오늘의 업무(태스크) 리스트 및 달성 현황:
-${tasks.map((t: any, i: number) => `${i + 1}. ${t.title} (달성률: ${t.progress}%)${t.comment ? ` - 코멘트/지연사유: ${t.comment}` : ''}`).join('\n')}
-- 오늘의 컨디션: ${condition} (😊: 최상, 😐: 보통, 😫: 지침)
-- 연동된 GitHub 아이디: ${githubUsername}
-- 오늘 수행한 깃허브 주요 활동 (최대 10개 이벤트):
-${githubEvents.map((e: any, i: number) => `${i + 1}. [${e.type}] 레포지토리: ${e.repo.name}`).join('\n')}
+- 이번 워케이션 핵심 목표: ${workationGoals && workationGoals.length > 0 ? workationGoals.join(', ') : '없음'}
+- 오늘의 세부 태스크 현황:
+${tasks.map((t: any, i: number) => `  ${i + 1}. ${t.title} (완료율: ${t.progress}%)${t.comment ? ` - 코멘트: ${t.comment}` : ''}`).join('\n')}
+- 오늘의 컨디션: ${condition}
+- 실시간 노션(Notion) 문서 작업 기록 (수정 내역):
+${notionLogs && notionLogs.length > 0 ? notionLogs.join('\n') : '  노션 연동 기록 없음'}
+- 실시간 깃허브(GitHub) 활동 기록 (최대 10건):
+${githubEvents && githubEvents.length > 0 ? githubEvents.map((e: any, i: number) => `  ${i + 1}. [${e.type}] ${e.repo.name}`).join('\n') : '  깃허브 연동 기록 없음'}
 
-[작성 가이드라인]
-1. 단순한 나열이 아닌 부드러운 구어체(해요체/하십시오체)로 작성할 것.
-2. 깃허브 활동 내역이 있다면 '실제로 어떤 레포지토리에서 푸시(또는 PR) 활동이 있었는지' 언급하며 딥워크 성과를 인정해줄 것.
-3. 만약 깃허브 활동 내역이 비어있다면, "오늘은 깃허브 활동 대신 다른 핵심 업무(목표 달성)에 집중하신 것 같네요!"라고 긍정적으로 커버해줄 것.
-4. 컨디션과 목표 달성률을 종합하여 내일의 워케이션도 응원하는 멘트로 마무리할 것.
-5. 마크다운 양식을 사용하여 가독성을 높일 것 (예: 볼드체, 이모지 사용 등).
-6. 글은 300자 내외로 간결하게 작성할 것.
+[출력 양식 및 필수 지시사항]
+1. 반드시 마크다운(Markdown) 형식을 사용하여 보고서를 작성하십시오. 줄글 형태의 긴 서술형은 피하고, 표(Table)와 요약 글머리 기호(Bullet points)를 적극 활용하세요.
+2. [핵심 지표] 섹션에서 "목표 달성률 (%)"을 반드시 계산해서 눈에 띄게(볼드체 등) 출력하십시오. (입력된 목표와 실제 활동 내역, 태스크 달성률을 종합적으로 평가하여 AI가 0~100% 사이로 객관적 판단)
+3. [활동 분석] 섹션에서 노션과 깃허브 기록이 초기 목표 달성에 어떻게 기여했는지 분석해주세요. (예: 마케팅 목표였는데 노션에 마케팅 기획안이 수정된 기록이 있으면 성과 인정)
+4. 어조는 전문적이고 객관적이되, 마무리 [총평 및 코멘트]에서는 긍정적이고 동기부여가 되는 피드백을 제공하세요.
+5. 분량은 가독성을 위해 간결하게 작성하되 데이터 시각화(표)에 집중해주세요.
 `;
 
     const result = await model.generateContent(prompt);

@@ -61,6 +61,9 @@ export default function MyWorkationPage() {
   const [notionToken, setNotionToken] = useState<string | null>(null)
   const [notionPagesState, setNotionPagesState] = useState<any[]>([])
 
+  // 예약 시 설정한 워케이션 목표 상태
+  const [workationGoals, setWorkationGoals] = useState<string[]>([])
+
   const fetchNotionData = async (token: string, isManualRefresh = false) => {
     try {
       if (isManualRefresh) {
@@ -237,6 +240,8 @@ export default function MyWorkationPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          workationGoals,
+          notionLogs: tools.find(t => t.id === 'notion')?.logs || [],
           tasks,
           condition: condition === '😊' ? '최상' : condition === '😐' ? '보통' : '지침',
           githubUsername,
@@ -307,6 +312,16 @@ export default function MyWorkationPage() {
 
       if (dData) {
         setProofs(dData as any)
+      }
+
+      // 예약 시 설정한 워케이션 목표 불러오기 (로컬 스토리지)
+      try {
+        const storedGoals = localStorage.getItem('workation_goals');
+        if (storedGoals) {
+          setWorkationGoals(JSON.parse(storedGoals));
+        }
+      } catch (e) {
+        console.error('Failed to parse workation_goals', e);
       }
     })
   }, [])
@@ -380,10 +395,30 @@ export default function MyWorkationPage() {
       <div className="max-w-3xl mx-auto px-6 py-8">
         
         {/* 페이지 타이틀 (토스 스타일 큼직한 타이포그래피) */}
-        <div className="mb-10 mt-4">
+        <div className="mb-8 mt-4">
           <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-700 via-indigo-600 to-purple-600 tracking-tight leading-tight mb-3">오늘의 워케이션<br/>어떻게 진행되고 있나요?</h1>
           <p className="text-[#64748B] font-semibold text-[15px]">제휴 공간 인증 및 실시간 업무 증빙</p>
         </div>
+
+        {/* 🎯 이번 워케이션의 핵심 목표 (예약 시 설정) */}
+        {workationGoals.length > 0 && (
+          <div className="bg-blue-50 border border-blue-100 rounded-[24px] p-6 mb-8 shadow-sm relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-1.5 h-full bg-blue-500 rounded-l-[24px]"></div>
+            <h2 className="font-bold text-[17px] text-blue-900 flex items-center gap-2 mb-3">
+              <span className="text-xl drop-shadow-sm">🚩</span> 예약 시 설정한 '나의 워케이션 목표'
+            </h2>
+            <ul className="space-y-2">
+              {workationGoals.map((goal, idx) => (
+                <li key={idx} className="flex items-start gap-3">
+                  <span className="shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs mt-0.5">
+                    {idx + 1}
+                  </span>
+                  <span className="text-[15px] font-medium text-blue-800 leading-relaxed">{goal}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {/* 🎯 0. 워케이션 마이크로 태스크 관리 */}
         <div className="bg-gradient-to-br from-[#F8FAFC] to-[#F1F5F9] border border-white rounded-[32px] p-8 mb-6 shadow-[0_10px_40px_rgb(0,0,0,0.06)] relative overflow-hidden">

@@ -7,7 +7,7 @@ import Button from '@/components/ui/Button'
 import { supabase } from '@/lib/supabase'
 import { useAuthOnly } from '@/lib/useAuthOnly'
 
-const STEPS = ['날짜·인원 선택', '지원금 확인', '최종 확인']
+const STEPS = ['날짜·인원 선택', '업무 목표 설정', '지원금 확인', '최종 확인']
 
 type Accommodation = {
   id: string
@@ -44,6 +44,7 @@ function BookingContent() {
   const [useSubsidy, setUseSubsidy] = useState(true)
   const [saving, setSaving]         = useState(false)
   const [paymentType, setPaymentType] = useState<'corporate' | 'personal'>('corporate')
+  const [goals, setGoals]           = useState<string[]>([''])
 
   useEffect(() => {
     if (!accId) return
@@ -88,6 +89,13 @@ function BookingContent() {
       alert('예약 저장 실패: ' + error.message)
       return
     }
+
+    // 목표를 로컬 스토리지에 저장 (데모 및 워케이션 대시보드 연동용)
+    const validGoals = goals.filter(g => g.trim() !== '')
+    if (validGoals.length > 0) {
+      localStorage.setItem('workation_goals', JSON.stringify(validGoals))
+    }
+
     router.push('/booking/confirm')
   }
 
@@ -156,8 +164,70 @@ function BookingContent() {
           </div>
         )}
 
-        {/* STEP 1 — 지원금 */}
+        {/* STEP 1 — 업무 목표 설정 */}
         {step === 1 && (
+          <div className="bg-white border border-[#E2E8F0] rounded-2xl p-6 flex flex-col gap-4">
+            <div className="flex flex-col gap-1 mb-2">
+              <h2 className="font-bold text-lg">이번 워케이션의 핵심 업무 목표를 알려주세요</h2>
+              <p className="text-sm text-[#475569]">작성해주신 목표는 향후 AI 업무 성과 리포트의 기준이 됩니다. (예: 3분기 마케팅 기획안 초안 완성)</p>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              {goals.map((goal, idx) => (
+                <div key={idx} className="flex gap-2">
+                  <span className="shrink-0 w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm">
+                    {idx + 1}
+                  </span>
+                  <input 
+                    type="text" 
+                    value={goal}
+                    onChange={(e) => {
+                      const newGoals = [...goals];
+                      newGoals[idx] = e.target.value;
+                      setGoals(newGoals);
+                    }}
+                    placeholder="핵심 목표를 구체적으로 작성해주세요."
+                    className="flex-1 bg-[#F1F5F9] border border-[#E2E8F0] rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-blue-500"
+                  />
+                  {goals.length > 1 && (
+                    <button onClick={() => setGoals(goals.filter((_, i) => i !== idx))} className="text-[#94A3B8] hover:text-red-500 px-2">
+                      ✕
+                    </button>
+                  )}
+                </div>
+              ))}
+              
+              {goals.length < 3 && (
+                <button 
+                  onClick={() => setGoals([...goals, ''])}
+                  className="text-sm font-medium text-blue-500 hover:text-blue-600 self-start mt-2 flex items-center gap-1"
+                >
+                  <span>+</span> 목표 추가하기 (최대 3개)
+                </button>
+              )}
+            </div>
+
+            <div className="flex gap-3 mt-4">
+              <Button variant="secondary" size="lg" className="flex-1" onClick={() => setStep(0)}>← 이전</Button>
+              <Button 
+                size="lg" 
+                className="flex-1" 
+                onClick={() => {
+                  if (goals.filter(g => g.trim() !== '').length === 0) {
+                    alert('최소 1개 이상의 업무 목표를 작성해주세요.');
+                    return;
+                  }
+                  setStep(2);
+                }}
+              >
+                다음 → 지원금 확인
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* STEP 2 — 지원금 */}
+        {step === 2 && (
           <div className="bg-white border border-[#E2E8F0] rounded-2xl p-6 flex flex-col gap-4">
             <div className="flex items-center gap-2 mb-1">
               <span className="text-lg">💰</span>
@@ -217,14 +287,14 @@ function BookingContent() {
             </div>
 
             <div className="flex gap-3">
-              <Button variant="secondary" size="lg" className="flex-1" onClick={() => setStep(0)}>← 수정</Button>
-              <Button size="lg" className="flex-1" onClick={() => setStep(2)}>다음 → 최종 확인</Button>
+              <Button variant="secondary" size="lg" className="flex-1" onClick={() => setStep(1)}>← 수정</Button>
+              <Button size="lg" className="flex-1" onClick={() => setStep(3)}>다음 → 최종 확인</Button>
             </div>
           </div>
         )}
 
-        {/* STEP 2 — 최종 확인 */}
-        {step === 2 && (
+        {/* STEP 3 — 최종 확인 */}
+        {step === 3 && (
           <div className="bg-white border border-[#E2E8F0] rounded-2xl p-6 flex flex-col gap-4">
             <h2 className="font-bold text-lg">예약 내용을 확인해주세요</h2>
 
@@ -279,7 +349,7 @@ function BookingContent() {
             </div>
 
             <div className="flex gap-3">
-              <Button variant="secondary" size="lg" className="flex-1" onClick={() => setStep(1)}>← 수정</Button>
+              <Button variant="secondary" size="lg" className="flex-1" onClick={() => setStep(2)}>← 수정</Button>
               <Button size="lg" className="flex-1" onClick={handleBookingComplete}>
                 {saving ? '저장 중...' : '예약 완료'}
               </Button>
