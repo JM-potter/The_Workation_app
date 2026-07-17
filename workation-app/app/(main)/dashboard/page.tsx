@@ -1,9 +1,10 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Header from '@/components/ui/Header'
 import Button from '@/components/ui/Button'
 import Link from 'next/link'
 import Footer from '@/components/ui/Footer'
+import { supabase } from '@/lib/supabase'
 
 const HARDCODED_BOOKINGS = [
   { id: '1', user_id: 'u1', userName: '김지민 (기획팀)', start_date: '2026-07-10', end_date: '2026-07-12', guests: 2, total_price: 180000, status: 'confirmed', accommodations: { name: '강릉 홍보 체험형 워케이션', region: '강원도 강릉시' } },
@@ -20,8 +21,35 @@ const HARDCODED_SUBSIDY_USAGE = [
 ]
 
 export default function DashboardPage() {
-  const [bookings] = useState(HARDCODED_BOOKINGS)
-  const [subsidyUsage] = useState(HARDCODED_SUBSIDY_USAGE)
+  const [bookings, setBookings] = useState<any[]>([])
+  const [subsidyUsage, setSubsidyUsage] = useState<any[]>(HARDCODED_SUBSIDY_USAGE)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function loadData() {
+      // 1. 예약 데이터 불러오기
+      const { data: bData } = await supabase.from('bookings').select('*').order('created_at', { ascending: false })
+      // 2. 숙소 데이터 불러오기 (join 대용)
+      const { data: aData } = await supabase.from('accommodations').select('*')
+      
+      if (bData && aData && bData.length > 0) {
+        const enriched = bData.map(b => {
+          const acc = aData.find(a => a.id === b.accommodation_id)
+          return {
+            ...b,
+            userName: b.user_id ? `임직원 (${b.user_id.substring(0,4)})` : '테스트 직원',
+            accommodations: acc || { name: '등록된 숙소', region: '지역 정보 없음' }
+          }
+        })
+        setBookings(enriched)
+      } else {
+        // 아직 실제 예약이 없을 경우 화면을 위해 하드코딩 데이터 표시
+        setBookings(HARDCODED_BOOKINGS)
+      }
+      setLoading(false)
+    }
+    loadData()
+  }, [])
   
   const confirmedBookings = bookings.filter(b => b.status === 'confirmed')
   const totalAmount       = confirmedBookings.reduce((s, b) => s + b.total_price, 0)
