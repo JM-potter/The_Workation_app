@@ -20,8 +20,8 @@ export async function POST(request: Request) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    // 구글 API 키의 완전 무료 티어 제한(limit:0)에 걸리지 않는 범용 최신 모델 사용
-    const model = genAI.getGenerativeModel({ model: 'gemini-flash-lite-latest' });
+    // 무료 티어 내 최고 성능 모델(Pro)로 고정
+    const model = genAI.getGenerativeModel({ model: 'gemini-pro-latest' });
 
     const prompt = `
 당신은 기업의 인사(HR) 및 성과 평가를 담당하는 전문적이고 분석적인 AI 어시스턴트입니다.
