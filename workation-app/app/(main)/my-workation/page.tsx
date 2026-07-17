@@ -325,7 +325,7 @@ export default function MyWorkationPage() {
       if (!uid) {
         if (BYPASS_AUTH) {
           uid = '00000000-0000-0000-0000-000000000000'
-          nameVal = '김지민'
+          nameVal = '테스트유저'
         } else {
           return
         }
