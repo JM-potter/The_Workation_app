@@ -35,10 +35,10 @@ export default function MyWorkationPage() {
   const [proofs, setProofs] = useState<ProofDoc[]>([])
   const [uploading, setUploading] = useState(false)
 
-  // 업무 툴 사용량 연동 (Mock)
   const [tools, setTools] = useState([
     { id: 'slack', name: 'Slack', icon: '💬', usageMinutes: 0, lastActive: '-', status: 'disconnected', logs: [] as string[] },
-    { id: 'github', name: 'GitHub', icon: '🐙', usageMinutes: 0, lastActive: '-', status: 'disconnected', logs: [] as string[] }
+    { id: 'github', name: 'GitHub', icon: '🐙', usageMinutes: 0, lastActive: '-', status: 'disconnected', logs: [] as string[] },
+    { id: 'notion', name: 'Notion', icon: '📓', usageMinutes: 0, lastActive: '-', status: 'disconnected', logs: [] as string[] }
   ])
   
   // OKR 다중 태스크 상태
@@ -57,13 +57,66 @@ export default function MyWorkationPage() {
   const [report, setReport] = useState<string | null>(null)
   const [reportGenerating, setReportGenerating] = useState(false)
 
-  const handleConnectTool = async (id: string) => {
-    if (id === 'github') {
+  const handleNotionConnect = async () => {
+    // 최근 노션 업데이트로 인해 OAuth보다 직관적인 PAT(Personal Access Token) 방식을 사용합니다.
+    const token = window.prompt(
+      '노션 연동을 위한 개인 엑세스 토큰(ntn_...)을 입력해주세요.\n발급처: https://app.notion.com/developers/tokens'
+    );
+
+    if (!token) {
+      alert('토큰 입력이 취소되었습니다.');
+      return;
+    }
+
+    setTools(prev => prev.map(t => t.id === 'notion' ? { ...t, status: 'connecting' } : t));
+
+    try {
+      const res = await fetch('/api/notion/activity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: token.trim() })
+      });
+      
+      if (!res.ok) throw new Error('Failed to fetch Notion activity');
+      const data = await res.json();
+      
+      if (data.pages && data.pages.length > 0) {
+        setTools(tools.map(t => t.id === 'notion' ? {
+          ...t,
+          status: 'connected',
+          usageMinutes: data.pages.length * 30, // 예시: 페이지당 30분
+          lastActive: '방금 전',
+          logs: data.pages.map((p: any) => `수정: ${p.title}`)
+        } : t));
+      } else {
+        setTools(tools.map(t => t.id === 'notion' ? {
+          ...t,
+          status: 'connected',
+          usageMinutes: 0,
+          lastActive: '기록 없음',
+          logs: ['(주의) 토큰은 유효하지만, 아직 노션 페이지 우측 상단 메뉴(•••)에서 "연결 추가(Add connections)"로 통합을 초대하지 않았거나, 오늘 수정된 페이지가 없습니다.']
+        } : t));
+      }
+    } catch (error) {
+      console.error(error);
+      alert('노션 데이터를 가져오는데 실패했습니다. 토큰이 유효한지 확인해주세요.');
+      setTools(prev => prev.map(t => t.id === 'notion' ? { ...t, status: 'disconnected' } : t));
+    }
+  }
+
+  const handleConnectTool = async (toolId: string) => {
+    if (toolId === 'notion') {
+      handleNotionConnect();
+      return;
+    }
+
+    // 깃허브 실제 연동 로직
+    if (toolId === 'github') {
       if (!githubUsername) {
         alert('GitHub 닉네임(Username)을 입력해주세요! (이메일 주소 불가)');
         return;
       }
-      setTools(prev => prev.map(t => t.id === id ? { ...t, status: 'connecting' } : t))
+      setTools(prev => prev.map(t => t.id === toolId ? { ...t, status: 'connecting' } : t))
       
       try {
         const res = await fetch(`https://api.github.com/users/${githubUsername}/events/public`);
