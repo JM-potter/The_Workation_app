@@ -130,28 +130,24 @@ export default function AccommodationsPage() {
                 <div className="bg-white border border-[#E2E8F0] rounded-xl overflow-hidden hover:border-blue-500/50 transition-all group">
                   <div className="relative">
                     <img src={getImageUrl(acc)} alt={acc.name} className="h-44 w-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    {acc.tags && acc.tags.length > 0 && (
-                      <div className="absolute top-3 left-3 flex flex-wrap gap-1">
-                        {acc.tags.map((tag, idx) => (
-                          <span key={idx} className="bg-black/60 backdrop-blur-sm text-white text-[11px] font-bold px-2.5 py-1 rounded-md">
-                            #{tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
                   </div>
                   <div className="p-4">
                     <h3 className="font-semibold text-sm leading-snug mb-1">{acc.name}</h3>
                     <p className="text-xs text-[#94A3B8] mb-2">📍 {(acc.region || '')}</p>
-                    <div className="flex flex-wrap gap-1 mb-3">
-                      {(acc.amenities || []).slice(0, 2).map(a => (
-                        <span key={a} className="text-xs bg-[#F1F5F9] text-[#475569] px-2 py-0.5 rounded">{a}</span>
-                      ))}
+                    <div className="flex flex-wrap gap-1.5 mb-3">
                       {getSubsidyTotal((acc.region || '')) > 0 && (
                         <span className="text-xs bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded border border-emerald-500/20">
                           💰 {getSubsidyTotal((acc.region || '')).toLocaleString()}원/인 지원
                         </span>
                       )}
+                      {acc.tags && acc.tags.slice(0, 2).map((tag, idx) => (
+                        <span key={`tag-${idx}`} className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded border border-blue-100">
+                          #{tag}
+                        </span>
+                      ))}
+                      {(acc.amenities || []).slice(0, 1).map(a => (
+                        <span key={a} className="text-xs bg-[#F1F5F9] text-[#475569] px-2 py-0.5 rounded">{a}</span>
+                      ))}
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-blue-400 font-bold text-sm">
