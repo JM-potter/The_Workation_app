@@ -54,13 +54,16 @@ export default function AccommodationDetailPage() {
   const [subsidies, setSubsidies] = useState<Subsidy[]>([])
   const [loading, setLoading]     = useState(true)
   const [showLoginModal, setShowLoginModal] = useState(false)
+  const [checkIn, setCheckIn] = useState('')
+  const [checkOut, setCheckOut] = useState('')
+  const [guests, setGuests] = useState(1)
 
   async function handleBooking() {
     const { data } = await supabase.auth.getUser()
     if (!data.user && !BYPASS_AUTH) {
       setShowLoginModal(true)
     } else {
-      router.push(`/booking?id=${acc?.id}`)
+      router.push(`/booking?id=${acc?.id}&checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}`)
     }
   }
 
@@ -152,16 +155,16 @@ export default function AccommodationDetailPage() {
               <div className="flex flex-col gap-3 mb-4">
                 <div>
                   <label className="text-xs text-[#475569] mb-1 block">체크인</label>
-                  <input type="date" className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm text-[#0F172A] focus:outline-none focus:border-blue-500" />
+                  <input type="date" value={checkIn} onChange={(e) => setCheckIn(e.target.value)} className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm text-[#0F172A] focus:outline-none focus:border-blue-500" />
                 </div>
                 <div>
                   <label className="text-xs text-[#475569] mb-1 block">체크아웃</label>
-                  <input type="date" className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm text-[#0F172A] focus:outline-none focus:border-blue-500" />
+                  <input type="date" value={checkOut} onChange={(e) => setCheckOut(e.target.value)} className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm text-[#0F172A] focus:outline-none focus:border-blue-500" />
                 </div>
                 <div>
                   <label className="text-xs text-[#475569] mb-1 block">인원</label>
-                  <select className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm text-[#0F172A] focus:outline-none focus:border-blue-500">
-                    {[1,2,3,4,5,6,7,8,9,10].map(n => <option key={n}>{n}명</option>)}
+                  <select value={guests} onChange={(e) => setGuests(Number(e.target.value))} className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm text-[#0F172A] focus:outline-none focus:border-blue-500">
+                    {[1,2,3,4,5,6,7,8,9,10].map(n => <option key={n} value={n}>{n}명</option>)}
                   </select>
                 </div>
               </div>
