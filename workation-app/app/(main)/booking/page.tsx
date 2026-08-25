@@ -39,6 +39,7 @@ function BookingContent() {
   const [subsidies, setSubsidies]   = useState<Subsidy[]>([])
   const [step, setStep]             = useState(0)
   const [guests, setGuests]         = useState(Number(searchParams.get('guests')) || 4)
+  const [eligibleGuests, setEligibleGuests] = useState(Number(searchParams.get('guests')) || 4)
   const [checkIn, setCheckIn]       = useState(searchParams.get('checkIn') || '')
   const [checkOut, setCheckOut]     = useState(searchParams.get('checkOut') || '')
   const [useSubsidy, setUseSubsidy] = useState(true)
@@ -68,7 +69,7 @@ function BookingContent() {
     ? Math.max(1, Math.round((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / 86400000))
     : 3
   const subsidyPerHead = subsidies.reduce((s, m) => s + m.amount_per_person, 0)
-  const subsidyTotal   = useSubsidy ? subsidyPerHead * guests : 0
+  const subsidyTotal   = useSubsidy ? subsidyPerHead * eligibleGuests : 0
   const finalTotal     = pricePerNight * nights * guests - subsidyTotal
 
   async function handleBookingComplete() {
@@ -152,12 +153,30 @@ function BookingContent() {
               </div>
             </div>
 
-            <div>
-              <label className="text-xs text-[#475569] mb-1 block">인원</label>
-              <select value={guests} onChange={e => setGuests(Number(e.target.value))}
-                className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-sm text-[#0F172A] focus:outline-none focus:border-blue-500">
-                {[1,2,3,4,5,6,7,8,9,10].map(n => <option key={n} value={n}>{n}명</option>)}
-              </select>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-[#475569] mb-1 block">전체 숙박 인원</label>
+                <select value={guests} onChange={e => {
+                  const newGuests = Number(e.target.value);
+                  setGuests(newGuests);
+                  if (eligibleGuests > newGuests) setEligibleGuests(newGuests);
+                }}
+                  className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-sm text-[#0F172A] focus:outline-none focus:border-blue-500">
+                  {[1,2,3,4,5,6,7,8,9,10].map(n => <option key={n} value={n}>{n}명</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-[#475569] mb-1 flex items-center gap-1">
+                  지원금 대상 인원
+                  <span className="text-[10px] bg-emerald-100 text-emerald-600 px-1.5 py-0.5 rounded font-bold">워케이션</span>
+                </label>
+                <select value={eligibleGuests} onChange={e => setEligibleGuests(Number(e.target.value))}
+                  className="w-full bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2.5 text-sm text-emerald-800 focus:outline-none focus:border-emerald-500 font-medium">
+                  {Array.from({ length: guests + 1 }, (_, i) => i).reverse().map(n => (
+                    <option key={n} value={n}>{n === 0 ? '0명 (미적용)' : `${n}명`}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <Button size="lg" className="w-full mt-2" onClick={() => setStep(1)}>다음 → 지원금 확인</Button>
@@ -233,7 +252,7 @@ function BookingContent() {
               <span className="text-lg">💰</span>
               <h2 className="font-bold text-lg">지원금 자동 매칭 결과</h2>
             </div>
-            <p className="text-xs text-[#475569]">{acc?.region} 워케이션 기준 · {guests}명</p>
+            <p className="text-xs text-[#475569]">{acc?.region} 워케이션 기준 · {eligibleGuests}명 지원 대상</p>
 
             {subsidies.length === 0 ? (
               <div className="bg-[#F1F5F9] rounded-xl p-4 text-sm text-[#94A3B8] text-center">
@@ -272,7 +291,7 @@ function BookingContent() {
                 </div>
                 {useSubsidy && subsidies.length > 0 && (
                   <div className="flex justify-between text-emerald-500">
-                    <span>지원금 차감 ({guests}명 × {subsidyPerHead.toLocaleString()}원)</span>
+                    <span>지원금 차감 ({eligibleGuests}명 × {subsidyPerHead.toLocaleString()}원)</span>
                     <span>- {subsidyTotal.toLocaleString()}원</span>
                   </div>
                 )}
