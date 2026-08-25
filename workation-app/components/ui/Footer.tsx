@@ -26,7 +26,7 @@ export default function Footer() {
           <div>
             <div className="font-bold text-sm mb-4">회사</div>
             <ul className="space-y-2 text-sm text-[#94A3B8]">
-              <li><Link href="#" className="hover:text-white transition-colors">회사 소개</Link></li>
+              <li><Link href="/about" className="hover:text-white transition-colors">회사 소개</Link></li>
               <li><Link href="#" className="hover:text-white transition-colors">이용약관</Link></li>
               <li><Link href="#" className="hover:text-white transition-colors">개인정보처리방침</Link></li>
             </ul>
