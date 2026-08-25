@@ -185,18 +185,42 @@ function BookingContent() {
 
         {/* STEP 1 — 업무 목표 설정 */}
         {step === 1 && (
-          <div className="bg-white border border-[#E2E8F0] rounded-2xl p-6 flex flex-col gap-4">
-            <div className="flex flex-col gap-1 mb-2">
-              <h2 className="font-bold text-lg">이번 워케이션의 핵심 업무 목표를 알려주세요</h2>
-              <p className="text-sm text-[#475569]">작성해주신 목표는 향후 AI 업무 성과 리포트의 기준이 됩니다. (예: 3분기 마케팅 기획안 초안 완성)</p>
+          <div className="bg-white border border-[#E2E8F0] rounded-2xl p-6 flex flex-col gap-5">
+            <div className="flex flex-col gap-1.5 mb-1">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🎯</span>
+                <h2 className="font-bold text-lg">이번 워케이션의 퀘스트를 설정해주세요</h2>
+              </div>
+              <p className="text-sm text-[#64748B] leading-relaxed">
+                워케이션의 묘미는 목표 달성 후 즐기는 짜릿한 휴식이죠!<br/>
+                이번 일정 동안 <strong>반드시 끝낼 핵심 퀘스트</strong>를 정의해 주세요.
+              </p>
+            </div>
+
+            <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4 flex flex-col gap-3">
+              <div className="text-xs font-bold text-blue-600 mb-1">💡 이런 퀘스트는 어때요? (클릭하여 추가)</div>
+              <div className="flex flex-wrap gap-2">
+                {['🚀 신규 프로젝트 기획안 초안 완성', '📊 경쟁사 시장 조사 및 리포팅', '💻 밀린 코드 리팩토링 및 버그 수정', '📝 분기별 회고 및 다음 분기 전략 수립'].map(sugg => (
+                  <button 
+                    key={sugg}
+                    onClick={() => {
+                      if (goals.length === 1 && goals[0] === '') setGoals([sugg])
+                      else if (goals.length < 3) setGoals([...goals, sugg])
+                    }}
+                    className="text-xs bg-white border border-blue-200 text-[#475569] hover:text-blue-600 hover:border-blue-400 px-3 py-1.5 rounded-full transition-all text-left shadow-sm"
+                  >
+                    {sugg}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="flex flex-col gap-3">
               {goals.map((goal, idx) => (
-                <div key={idx} className="flex gap-2">
-                  <span className="shrink-0 w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm">
-                    {idx + 1}
-                  </span>
+                <div key={idx} className="flex gap-2 group relative">
+                  <div className="shrink-0 w-10 bg-[#F8FAFC] border border-[#E2E8F0] text-[#94A3B8] rounded-xl flex items-center justify-center font-black text-sm shadow-inner">
+                    Q{idx + 1}
+                  </div>
                   <input 
                     type="text" 
                     value={goal}
@@ -205,11 +229,11 @@ function BookingContent() {
                       newGoals[idx] = e.target.value;
                       setGoals(newGoals);
                     }}
-                    placeholder="핵심 목표를 구체적으로 작성해주세요."
-                    className="flex-1 bg-[#F1F5F9] border border-[#E2E8F0] rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-blue-500"
+                    placeholder="퀘스트 내용을 구체적으로 작성해주세요."
+                    className="flex-1 bg-white border border-[#E2E8F0] shadow-sm rounded-xl px-4 py-2.5 text-sm font-medium text-[#0F172A] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder:font-normal"
                   />
                   {goals.length > 1 && (
-                    <button onClick={() => setGoals(goals.filter((_, i) => i !== idx))} className="text-[#94A3B8] hover:text-red-500 px-2">
+                    <button onClick={() => setGoals(goals.filter((_, i) => i !== idx))} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#CBD5E1] hover:text-red-500 transition-colors bg-white px-1">
                       ✕
                     </button>
                   )}
@@ -219,27 +243,27 @@ function BookingContent() {
               {goals.length < 3 && (
                 <button 
                   onClick={() => setGoals([...goals, ''])}
-                  className="text-sm font-medium text-blue-500 hover:text-blue-600 self-start mt-2 flex items-center gap-1"
+                  className="text-sm font-semibold text-[#64748B] hover:text-blue-600 self-center mt-2 flex items-center gap-1 transition-colors px-4 py-2 rounded-lg hover:bg-blue-50"
                 >
-                  <span>+</span> 목표 추가하기 (최대 3개)
+                  <span className="text-lg leading-none">+</span> 새로운 퀘스트 추가하기 (최대 3개)
                 </button>
               )}
             </div>
 
-            <div className="flex gap-3 mt-4">
+            <div className="flex gap-3 mt-2">
               <Button variant="secondary" size="lg" className="flex-1" onClick={() => setStep(0)}>← 이전</Button>
               <Button 
                 size="lg" 
-                className="flex-1" 
+                className="flex-1 shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 transition-all" 
                 onClick={() => {
                   if (goals.filter(g => g.trim() !== '').length === 0) {
-                    alert('최소 1개 이상의 업무 목표를 작성해주세요.');
+                    alert('최소 1개 이상의 워케이션 퀘스트를 설정해주세요.');
                     return;
                   }
                   setStep(2);
                 }}
               >
-                다음 → 지원금 확인
+                퀘스트 확정 및 다음으로
               </Button>
             </div>
           </div>
