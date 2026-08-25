@@ -53,6 +53,11 @@ export default function MyWorkationPage() {
 
   // 예약 시 설정한 워케이션 목표 상태
   const [workationGoals, setWorkationGoals] = useState<string[]>([])
+  
+  // 🚀 스프린트 퀘스트 (신규 기능)
+  const [sprintQuests, setSprintQuests] = useState<{ id: number, text: string, completed: boolean, link: string }[]>([])
+  const [isOffMode, setIsOffMode] = useState(false)
+  const [offModeTime, setOffModeTime] = useState<string | null>(null)
 
   const fetchNotionData = async (token: string, isManualRefresh = false) => {
     try {
@@ -350,7 +355,14 @@ export default function MyWorkationPage() {
       try {
         const storedGoals = localStorage.getItem('workation_goals');
         if (storedGoals) {
-          setWorkationGoals(JSON.parse(storedGoals));
+          const parsed = JSON.parse(storedGoals);
+          setWorkationGoals(parsed);
+          setSprintQuests(parsed.map((g: string, i: number) => ({ id: i, text: g, completed: false, link: '' })));
+        } else {
+          // 목표가 비어있을 경우 테스트용 더미 데이터 세팅
+          const dummy = ["신규 기능 화면 기획서 작성 완료", "지자체 공문 20건 분석", "오류 모니터링 시스템 구축"];
+          setWorkationGoals(dummy);
+          setSprintQuests(dummy.map((g: string, i: number) => ({ id: i, text: g, completed: false, link: '' })));
         }
       } catch (e) {
         console.error('Failed to parse workation_goals', e);
@@ -358,18 +370,22 @@ export default function MyWorkationPage() {
     })
   }, [])
 
-  // 근무 시작 / 종료 처리
-  const handleCheckIn = () => {
-    if (!isConnected) return
-    setIsCheckedIn(true)
-    setCheckInTime(new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }))
-    setCheckOutTime(null)
+  // 🚀 스프린트 퀘스트 핸들러
+  const handleQuestToggle = (id: number) => {
+    setSprintQuests(prev => prev.map(q => q.id === id ? { ...q, completed: !q.completed } : q))
   }
 
-  const handleCheckOut = () => {
-    if (!isCheckedIn) return
-    setIsCheckedIn(false)
-    setCheckOutTime(new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }))
+  const handleQuestLinkChange = (id: number, link: string) => {
+    setSprintQuests(prev => prev.map(q => q.id === id ? { ...q, link } : q))
+  }
+
+  const handleOffModeActivate = () => {
+    const time = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })
+    setOffModeTime(time)
+    setIsOffMode(true)
+    
+    // 시뮬레이션: HR팀(슬랙)으로 알림 전송
+    alert(`[HR 알림 발송 완료] 🔔\n\n"${userName}님이 금일 목표 과업 ${sprintQuests.length}개를 100% 달성하여 Off 모드로 전환되었습니다. (달성 시간: ${time}, 성과 달성률 100%)"`)
   }
 
   // 업무 사진(증빙) 업로드
@@ -432,25 +448,7 @@ export default function MyWorkationPage() {
           <p className="text-[#64748B] font-semibold text-[15px]">제휴 공간 인증 및 실시간 업무 증빙</p>
         </div>
 
-        {/* 🎯 이번 워케이션의 핵심 목표 (예약 시 설정) */}
-        {workationGoals.length > 0 && (
-          <div className="bg-blue-50 border border-blue-100 rounded-[24px] p-6 mb-8 shadow-sm relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-1.5 h-full bg-blue-500 rounded-l-[24px]"></div>
-            <h2 className="font-bold text-[17px] text-blue-900 flex items-center gap-2 mb-3">
-              <span className="text-xl drop-shadow-sm">🚩</span> 예약 시 설정한 '나의 워케이션 목표'
-            </h2>
-            <ul className="space-y-2">
-              {workationGoals.map((goal, idx) => (
-                <li key={idx} className="flex items-start gap-3">
-                  <span className="shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs mt-0.5">
-                    {idx + 1}
-                  </span>
-                  <span className="text-[15px] font-medium text-blue-800 leading-relaxed">{goal}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+
 
         {/* 🎯 오늘의 컨디션 체크 */}
         <div className="bg-gradient-to-br from-[#F8FAFC] to-[#F1F5F9] border border-white rounded-[32px] p-8 mb-6 shadow-[0_10px_40px_rgb(0,0,0,0.06)] relative overflow-hidden">
@@ -479,93 +477,85 @@ export default function MyWorkationPage() {
           </div>
         </div>
 
-        {/* 📶 1. 네트워크 근태 인증 시뮬레이터 */}
-        <div className="bg-white rounded-[32px] p-8 mb-6 shadow-[0_10px_40px_rgb(0,0,0,0.04)]">
+        {/* 🚀 1. 목표 기반 조기 퇴근 시스템 [Sprint & Off 모드] */}
+        <div className={`rounded-[32px] p-8 mb-6 shadow-[0_10px_40px_rgb(0,0,0,0.04)] transition-all duration-700 ${
+          isOffMode ? 'bg-gradient-to-br from-teal-50 to-emerald-100 border-2 border-emerald-200' : 'bg-white'
+        }`}>
           <div className="flex items-center justify-between mb-6">
             <h2 className="font-bold text-[20px] text-[#0F172A] flex items-center gap-2">
-              <span className="text-2xl">📡</span> 실시간 근태 인증 시스템
+              <span className="text-2xl">{isOffMode ? '🌴' : '🎯'}</span> 
+              {isOffMode ? '휴식(Off) 모드 활성화 됨' : '오늘의 데일리 퀘스트 (목표 달성 시 퇴근)'}
             </h2>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-[#94A3B8] font-medium">데모용 스위치:</span>
-              <button 
-                onClick={() => {
-                  setIsConnected(!isConnected)
-                  if (isCheckedIn) setIsCheckedIn(false)
-                }}
-                className={`text-xs px-4 py-2 rounded-xl font-bold transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 ${
-                  isConnected 
-                    ? 'bg-red-50 text-red-600 hover:bg-red-100' 
-                    : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
-                }`}
-              >
-                {isConnected ? '🔌 와이파이 끊기' : '📶 공간 와이파이 연결'}
-              </button>
+              <span className={`text-xs px-4 py-2 rounded-xl font-bold shadow-sm ${
+                isOffMode ? 'bg-emerald-500 text-white' : 'bg-blue-50 text-blue-600'
+              }`}>
+                {isOffMode ? `달성률 100% (${offModeTime} 종료)` : `달성률 ${sprintQuests.length > 0 ? Math.floor((sprintQuests.filter(q => q.completed).length / sprintQuests.length) * 100) : 0}%`}
+              </span>
             </div>
           </div>
 
-          {/* 네트워크 상태창 */}
-          <div className={`rounded-[20px] p-5 mb-6 border-2 transition-all duration-500 ${
-            isConnected 
-              ? 'bg-emerald-50/50 border-emerald-100' 
-              : 'bg-red-50/50 border-red-100'
-          }`}>
-            <div className="flex items-center gap-4">
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl shadow-inner ${isConnected ? 'bg-emerald-100' : 'bg-red-100'}`}>
-                {isConnected ? '🟢' : '🔴'}
-              </div>
-              <div>
-                <div className="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-1">현재 네트워크 상태</div>
-                <div className={`text-[15px] font-black ${isConnected ? 'text-emerald-600' : 'text-red-500'}`}>
-                  {isConnected 
-                    ? '인증됨: 홍천 스마트워크센터 IP 접속 중 (WiFi: Workation_Guest_5G)' 
-                    : '미인증: 숙소/개인망 접속 중'
-                  }
+          <div className="space-y-4 mb-8">
+            {sprintQuests.map((quest) => (
+              <div key={quest.id} className={`p-5 rounded-[20px] border-2 transition-all ${
+                quest.completed ? 'bg-slate-50 border-emerald-200 opacity-70' : 'bg-white border-slate-100 hover:border-blue-200'
+              }`}>
+                <div className="flex items-start gap-4">
+                  <button 
+                    onClick={() => !isOffMode && handleQuestToggle(quest.id)}
+                    disabled={isOffMode}
+                    className={`w-7 h-7 shrink-0 rounded-lg flex items-center justify-center transition-all mt-0.5 ${
+                      quest.completed ? 'bg-emerald-500 text-white shadow-md' : 'bg-slate-100 border-2 border-slate-200 hover:bg-slate-200'
+                    }`}
+                  >
+                    {quest.completed && '✓'}
+                  </button>
+                  <div className="flex-1">
+                    <div className={`text-[16px] font-bold mb-2 transition-all ${quest.completed ? 'text-slate-400 line-through' : 'text-[#1E293B]'}`}>
+                      {quest.text}
+                    </div>
+                    {!quest.completed && !isOffMode && (
+                      <input 
+                        type="text" 
+                        placeholder="결과물 링크 (선택사항 - 노션, 깃허브 등)" 
+                        value={quest.link}
+                        onChange={(e) => handleQuestLinkChange(quest.id, e.target.value)}
+                        className="w-full text-[13px] bg-slate-50 border-none rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500/20"
+                      />
+                    )}
+                    {quest.completed && quest.link && (
+                      <div className="text-[12px] text-blue-500 font-medium truncate mt-1">
+                        🔗 {quest.link}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
+            ))}
+            {sprintQuests.length === 0 && (
+              <div className="text-center py-8 text-slate-400 text-sm font-medium bg-slate-50 rounded-2xl">
+                등록된 워케이션 목표가 없습니다.
+              </div>
+            )}
           </div>
 
-          {/* 출퇴근 액션 버튼 */}
-          <div className="grid grid-cols-2 gap-5">
+          {!isOffMode ? (
             <button
-              onClick={handleCheckIn}
-              disabled={!isConnected || isCheckedIn}
-              className={`py-5 rounded-[20px] text-sm font-bold transition-all duration-300 flex flex-col items-center justify-center gap-2 ${
-                isCheckedIn
-                  ? 'bg-emerald-50 text-emerald-600 cursor-not-allowed border border-emerald-100'
-                  : isConnected
-                    ? 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-[0_8px_20px_rgba(59,130,246,0.4)] hover:shadow-[0_12px_25px_rgba(59,130,246,0.5)] hover:-translate-y-1 active:scale-95'
-                    : 'bg-slate-50 text-slate-400 cursor-not-allowed border border-slate-100'
+              onClick={handleOffModeActivate}
+              disabled={sprintQuests.filter(q => q.completed).length !== sprintQuests.length || sprintQuests.length === 0}
+              className={`w-full py-5 rounded-[20px] text-lg font-black transition-all duration-300 flex items-center justify-center gap-3 ${
+                sprintQuests.filter(q => q.completed).length === sprintQuests.length && sprintQuests.length > 0
+                  ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-[0_8px_25px_rgba(16,185,129,0.4)] hover:shadow-[0_12px_30px_rgba(16,185,129,0.5)] hover:-translate-y-1 active:scale-95'
+                  : 'bg-slate-100 text-slate-400 cursor-not-allowed'
               }`}
             >
-              <span className="text-2xl drop-shadow-sm">🚪</span>
-              <span className="font-black text-[15px]">근무 시작 (Check-in)</span>
-              {checkInTime && <span className="text-[11px] opacity-90 font-medium">출근 기록: {checkInTime}</span>}
+              <span className="text-2xl drop-shadow-sm">🌴</span>
+              모든 퀘스트 완료! [휴식(Off) 모드] 전환하기
             </button>
-
-            <button
-              onClick={handleCheckOut}
-              disabled={!isCheckedIn}
-              className={`py-5 rounded-[20px] text-sm font-bold transition-all duration-300 flex flex-col items-center justify-center gap-2 ${
-                isCheckedIn
-                  ? 'bg-gradient-to-br from-rose-500 to-orange-500 text-white shadow-[0_8px_20px_rgba(244,63,94,0.4)] hover:shadow-[0_12px_25px_rgba(244,63,94,0.5)] hover:-translate-y-1 active:scale-95'
-                  : 'bg-slate-50 text-slate-400 cursor-not-allowed border border-slate-100'
-              }`}
-            >
-              <span className="text-2xl drop-shadow-sm">🏃</span>
-              <span className="font-black text-[15px]">근무 종료 (Check-out)</span>
-              {checkOutTime && <span className="text-[11px] opacity-90 font-medium">퇴근 기록: {checkOutTime}</span>}
-            </button>
-          </div>
-
-          {!isConnected && (
-            <div className="mt-5 text-center bg-red-50/50 text-red-500 py-3 rounded-xl text-[12px] font-bold">
-              ⚠️ 제휴 공간 전용 와이파이망(예: 홍천 스마트워크센터)에 연결되어야 버튼이 활성화됩니다.
-            </div>
-          )}
-          {isCheckedIn && (
-            <div className="mt-5 text-center bg-emerald-50/50 text-emerald-600 py-3 rounded-xl text-[12px] font-bold animate-pulse">
-              🟢 현재 정상 근무 중으로 기록되고 있습니다. 업무를 마치면 근무 종료를 눌러주세요.
+          ) : (
+            <div className="text-center bg-white/50 backdrop-blur-sm text-emerald-800 py-6 rounded-[20px] font-bold text-[16px] border border-emerald-100/50 shadow-inner">
+              🎉 축하합니다! 오늘의 업무 목표를 모두 달성했습니다.<br/>
+              <span className="text-sm font-medium opacity-80 mt-1 block">지금부터 온전한 워케이션 휴식을 즐기세요! 🌊</span>
             </div>
           )}
         </div>
