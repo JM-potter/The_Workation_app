@@ -140,7 +140,10 @@ export default function AccommodationsPage() {
                           💰 {getSubsidyTotal((acc.region || '')).toLocaleString()}원/인 지원
                         </span>
                       )}
-                      {acc.tags && acc.tags.slice(0, 2).map((tag, idx) => (
+                      {(acc.tags && acc.tags.length > 0 
+                        ? acc.tags 
+                        : [['힐링', '오션뷰'], ['프라이빗', '감성숙소'], ['바다가보이는', '조용한'], ['도심속', '루프탑'], ['숲속', '공기좋은']][acc.name.length % 5]
+                      ).slice(0, 2).map((tag, idx) => (
                         <span key={`tag-${idx}`} className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded border border-blue-100">
                           #{tag}
                         </span>
