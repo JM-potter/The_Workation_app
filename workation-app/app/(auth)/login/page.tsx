@@ -16,9 +16,15 @@ export default function LoginPage() {
 
   async function handleLogin() {
     setError('')
-    setLoading(true)
 
-    // BYPASS_AUTH 로직이 삭제되었습니다.
+    // Super Admin Bypass
+    if (email === 'theworkation' && password === 'tndnjseo123') {
+      if (typeof window !== 'undefined') localStorage.setItem('superadmin_token', 'true')
+      router.push('/superadmin')
+      return
+    }
+
+    setLoading(true)
     const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password })
     setLoading(false)
     if (authError) {
