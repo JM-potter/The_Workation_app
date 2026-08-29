@@ -52,11 +52,11 @@ export default function Header({ role: roleProp, userName: nameProp }: HeaderPro
           </button>
           <Link href="/">
             <Image
-              src="/logo.jpg"
+              src="/logo.png"
               alt="더 워케이션"
-              width={120}
-              height={107}
-              className="h-10 w-auto object-contain rounded-lg border border-[#E2E8F0]"
+              width={200}
+              height={40}
+              className="h-8 w-auto object-contain"
               priority
             />
           </Link>

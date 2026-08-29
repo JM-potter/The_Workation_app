@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import Button from '@/components/ui/Button'
 import Footer from '@/components/ui/Footer'
 
@@ -7,7 +8,16 @@ export default function LandingPage() {
     <div className="min-h-screen bg-white">
       {/* 헤더 */}
       <header className="px-6 py-5 flex justify-between items-center max-w-6xl mx-auto">
-        <span className="text-lg font-bold">더 워케이션</span>
+        <Link href="/">
+          <Image
+            src="/logo.png"
+            alt="더 워케이션"
+            width={200}
+            height={40}
+            className="h-8 w-auto object-contain"
+            priority
+          />
+        </Link>
         <nav className="flex items-center gap-6">
           <Link href="/about" className="text-sm text-blue-600 font-bold hover:text-blue-700 transition-colors">회사/사업 모델 소개</Link>
           <Link href="/workation" className="text-sm text-[#475569] hover:text-blue-500 transition-colors">워케이션이란?</Link>
