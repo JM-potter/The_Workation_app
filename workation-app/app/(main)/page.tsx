@@ -8,13 +8,13 @@ export default function LandingPage() {
     <div className="min-h-screen bg-white">
       {/* 헤더 */}
       <header className="px-6 py-5 flex justify-between items-center max-w-6xl mx-auto">
-        <Link href="/">
+        <Link href="/" className="shrink-0 mr-4">
           <Image
             src="/logo.png"
             alt="더 워케이션"
-            width={200}
-            height={40}
-            className="h-4 w-auto object-contain"
+            width={160}
+            height={20}
+            className="w-32 md:w-36 h-auto object-contain"
             priority
           />
         </Link>
