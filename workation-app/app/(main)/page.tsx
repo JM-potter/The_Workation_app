@@ -14,7 +14,7 @@ export default function LandingPage() {
             alt="더 워케이션"
             width={200}
             height={40}
-            className="h-8 w-auto object-contain"
+            className="h-5 w-auto object-contain"
             priority
           />
         </Link>
