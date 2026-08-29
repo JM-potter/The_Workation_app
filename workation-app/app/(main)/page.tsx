@@ -18,25 +18,25 @@ export default function LandingPage() {
             priority
           />
         </Link>
-        <nav className="flex items-center gap-6">
-          <Link href="/about" className="text-sm text-blue-600 font-bold hover:text-blue-700 transition-colors">회사/사업 모델 소개</Link>
-          <Link href="/workation" className="text-sm text-[#475569] hover:text-blue-500 transition-colors">워케이션이란?</Link>
-          <Link href="/subsidy" className="text-sm text-[#475569] hover:text-blue-500 transition-colors">지원금 안내</Link>
-          <Link href="/partner" className="text-sm text-[#475569] hover:text-blue-500 transition-colors">파트너 등록</Link>
-          <Link href="/faq" className="text-sm text-[#475569] hover:text-blue-500 transition-colors">자주 묻는 질문</Link>
+        <nav className="flex items-center gap-3 lg:gap-5 whitespace-nowrap">
+          <Link href="/about" className="text-xs lg:text-sm text-blue-600 font-bold hover:text-blue-700 transition-colors">회사/사업 모델 소개</Link>
+          <Link href="/workation" className="text-xs lg:text-sm text-[#475569] hover:text-blue-500 transition-colors">워케이션이란?</Link>
+          <Link href="/subsidy" className="text-xs lg:text-sm text-[#475569] hover:text-blue-500 transition-colors">지원금 안내</Link>
+          <Link href="/partner" className="text-xs lg:text-sm text-[#475569] hover:text-blue-500 transition-colors">파트너 등록</Link>
+          <Link href="/faq" className="text-xs lg:text-sm text-[#475569] hover:text-blue-500 transition-colors">자주 묻는 질문</Link>
         </nav>
-        <div className="flex gap-3">
-          <Link href="/gov" className="text-sm text-[#475569] hover:text-blue-500 transition-colors px-3 py-2">
+        <div className="flex gap-2 whitespace-nowrap items-center">
+          <Link href="/gov" className="text-xs lg:text-sm text-[#475569] hover:text-blue-500 transition-colors px-2 py-2">
             지자체
           </Link>
-          <Link href="/dashboard" className="text-sm text-[#475569] hover:text-blue-500 transition-colors px-3 py-2">
+          <Link href="/dashboard" className="text-xs lg:text-sm text-[#475569] hover:text-blue-500 transition-colors px-2 py-2">
             HR 대시보드
           </Link>
           <Link href="/login">
-            <Button variant="ghost" size="sm">로그인</Button>
+            <Button variant="ghost" size="sm" className="text-xs lg:text-sm px-3">로그인</Button>
           </Link>
           <Link href="/register">
-            <Button size="sm">무료로 시작하기</Button>
+            <Button size="sm" className="text-xs lg:text-sm px-3">무료로 시작하기</Button>
           </Link>
         </div>
       </header>
