@@ -56,7 +56,7 @@ export default function Header({ role: roleProp, userName: nameProp }: HeaderPro
               alt="더 워케이션"
               width={200}
               height={40}
-              className="h-5 w-auto object-contain"
+              className="h-4 w-auto object-contain"
               priority
             />
           </Link>
