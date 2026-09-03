@@ -33,7 +33,8 @@ export default function SuperAdminPage() {
     setLoading(true)
     try {
       // 프론트엔드 직접 접근 대신, 우리가 방금 뚫어둔 백엔드(API)로 요청
-      const res = await fetch('/api/superadmin/pending')
+      // 브라우저 캐싱 방지를 위해 no-store 옵션과 타임스탬프 추가
+      const res = await fetch('/api/superadmin/pending?t=' + Date.now(), { cache: 'no-store' })
       const data = await res.json()
       
       if (res.ok) {
