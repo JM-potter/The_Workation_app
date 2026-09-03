@@ -1,7 +1,7 @@
 'use client'
 export const dynamic = 'force-dynamic'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
@@ -18,28 +18,66 @@ export default function RegisterPage() {
   const [name, setName]         = useState('')
   const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
+  const [companyName, setCompanyName] = useState('')
+  const [phoneNumber, setPhoneNumber] = useState('')
+  
   const [error, setError]       = useState('')
   const [loading, setLoading]   = useState(false)
+  
+  const [showCompanyList, setShowCompanyList] = useState(false)
+  const [companyList, setCompanyList] = useState<string[]>([])
+
+  // 직원일 경우 가입된(승인된) HR 회사 목록 불러오기 (자동완성용)
+  useEffect(() => {
+    if (role === 'emp') {
+      const fetchCompanies = async () => {
+        const { data } = await supabase
+          .from('users')
+          .select('company_name')
+          .eq('role', 'hr')
+          .eq('status', 'approved')
+        
+        if (data) {
+          const uniqueCompanies = Array.from(new Set(data.map(u => u.company_name).filter(Boolean)))
+          setCompanyList(uniqueCompanies as string[])
+        }
+      }
+      fetchCompanies()
+    }
+  }, [role])
 
   async function handleRegister() {
-    if (!role || !name || !email || !password) {
-      setError('모든 항목을 입력해주세요')
+    if (!role || !name || !email || !password || !companyName) {
+      setError('모든 필수 항목을 입력해주세요')
       return
     }
+    if (role === 'hr' && !phoneNumber) {
+      setError('인사담당자는 검증을 위해 연락처를 반드시 입력해야 합니다.')
+      return
+    }
+
     setError('')
     setLoading(true)
     try {
       const { data, error: authError } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { name, role } },
+        options: { 
+          data: { 
+            name, 
+            role,
+            company_name: companyName,
+            status: 'pending', // 신규 가입자는 무조건 승인 대기 상태
+            phone_number: role === 'hr' ? phoneNumber : null
+          } 
+        },
       })
       setLoading(false)
       if (authError) {
         setError(authError.message)
       } else if (data.user) {
-        if (role === 'emp') router.push('/accommodations')
-        else router.push('/dashboard')
+        // 성공 시 무조건 승인 대기 페이지로 이동
+        router.push('/pending')
       } else {
         setError('가입 처리 중 오류가 발생했어요. 다시 시도해주세요.')
       }
@@ -50,7 +88,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-sm">
         <Link href="/" className="flex items-center gap-1 text-sm text-[#94A3B8] hover:text-[#475569] transition-colors mb-6">
           ← 뒤로가기
@@ -80,34 +118,72 @@ export default function RegisterPage() {
           <Input label="이메일" type="email" placeholder="name@company.com" value={email} onChange={e => setEmail(e.target.value)} />
           <Input label="비밀번호" type="password" placeholder="6자 이상" value={password} onChange={e => setPassword(e.target.value)} />
 
-          {error && <p className="text-sm text-red-400 text-center">{error}</p>}
+          {/* 소속 회사명 및 자동완성 */}
+          <div className="relative">
+            <Input 
+              label="소속 회사명" 
+              type="text" 
+              placeholder={role === 'hr' ? "정확한 법인명을 기입해주세요" : "소속 회사를 검색해주세요"} 
+              value={companyName} 
+              onChange={e => {
+                setCompanyName(e.target.value)
+                setShowCompanyList(true)
+              }}
+              onFocus={() => setShowCompanyList(true)}
+              onBlur={() => setTimeout(() => setShowCompanyList(false), 200)}
+            />
+            
+            {role === 'emp' && showCompanyList && companyName.length > 0 && (
+              <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                {companyList.filter(c => c.includes(companyName)).length > 0 ? (
+                  companyList.filter(c => c.includes(companyName)).map((c, idx) => (
+                    <div 
+                      key={idx} 
+                      className="px-4 py-2 hover:bg-slate-50 cursor-pointer text-sm text-slate-700 border-b last:border-0"
+                      onClick={() => {
+                        setCompanyName(c)
+                        setShowCompanyList(false)
+                      }}
+                    >
+                      {c}
+                    </div>
+                  ))
+                ) : (
+                  <div className="px-4 py-3 text-sm text-slate-500 bg-slate-50">
+                    가입(승인)된 회사가 없습니다.<br/>인사담당자에게 가입을 요청해주세요.
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* HR 전용 연락처 */}
+          {role === 'hr' && (
+            <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+              <Input 
+                label="연락처 (관리자 검증용)" 
+                type="text" 
+                placeholder="010-1234-5678" 
+                value={phoneNumber} 
+                onChange={e => setPhoneNumber(e.target.value)} 
+              />
+              <p className="text-[11px] text-blue-500 mt-1">기업 승인을 위해 플랫폼 관리자가 연락을 드릴 수 있습니다.</p>
+            </div>
+          )}
+
+          {error && <p className="text-sm text-red-500 text-center font-medium bg-red-50 py-2 rounded-lg">{error}</p>}
+          
           <button
             onClick={handleRegister}
             style={{ background: '#3B82F6', color: 'white', width: '100%', padding: '14px', borderRadius: '12px', fontWeight: 700, fontSize: '16px', border: 'none', cursor: 'pointer', marginTop: '4px' }}
           >
-            {loading ? '가입 중...' : '가입하기'}
-          </button>
-
-          <div className="flex items-center gap-3 my-1">
-            <div className="flex-1 h-px bg-[#E2E8F0]" />
-            <span className="text-xs text-[#94A3B8]">또는</span>
-            <div className="flex-1 h-px bg-[#E2E8F0]" />
-          </div>
-
-          <button className="w-full flex items-center justify-center gap-3 border border-[#E2E8F0] rounded-xl py-3 text-sm font-medium text-[#475569] hover:bg-[#F8FAFC] transition-colors">
-            <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.14 0 5.95 1.08 8.17 2.85l6.1-6.1C34.46 3.05 29.5 1 24 1 14.82 1 7.07 6.48 3.64 14.22l7.14 5.55C12.48 13.67 17.77 9.5 24 9.5z"/><path fill="#4285F4" d="M46.52 24.5c0-1.64-.15-3.22-.42-4.75H24v9h12.68c-.55 2.96-2.2 5.47-4.68 7.16l7.18 5.58C43.34 37.26 46.52 31.33 46.52 24.5z"/><path fill="#FBBC05" d="M10.78 28.23A14.6 14.6 0 0 1 9.5 24c0-1.47.25-2.89.68-4.23L3.04 14.22A23.93 23.93 0 0 0 .5 24c0 3.87.93 7.53 2.54 10.78l7.74-6.55z"/><path fill="#34A853" d="M24 46.5c5.5 0 10.12-1.82 13.48-4.94l-7.18-5.58c-1.82 1.22-4.15 1.94-6.3 1.94-6.23 0-11.52-4.17-13.22-9.77l-7.74 6.55C7.07 41.52 14.82 46.5 24 46.5z"/></svg>
-            Google로 가입하기
-          </button>
-
-          <button className="w-full flex items-center justify-center gap-3 bg-[#FEE500] rounded-xl py-3 text-sm font-medium text-[#191919] hover:brightness-95 transition-all">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="#191919"><path d="M12 3C7.03 3 6.36 3 3 6.36 3 10.5c0 2.62 1.56 4.93 3.93 6.3L6 21l4.42-2.3c.51.07 1.04.1 1.58.1 4.97 0 9-3.36 9-7.5S16.97 3 12 3z"/></svg>
-            카카오로 가입하기
+            {loading ? '가입 처리 중...' : '가입하기'}
           </button>
         </div>
 
         <p className="text-center text-sm text-[#94A3B8] mt-6">
           이미 계정이 있으신가요?{' '}
-          <Link href="/login" className="text-blue-400 hover:underline font-medium">로그인</Link>
+          <Link href="/login" className="text-blue-500 hover:underline font-bold">로그인</Link>
         </p>
       </div>
     </div>
