@@ -10,6 +10,7 @@ type PendingUser = {
   email: string
   company_name: string
   status: string
+  phone_number: string
 }
 
 export default function SuperAdminPage() {
@@ -102,6 +103,7 @@ export default function SuperAdminPage() {
                   <th className="px-6 py-3 font-medium">기업명</th>
                   <th className="px-6 py-3 font-medium">담당자 이름</th>
                   <th className="px-6 py-3 font-medium">이메일</th>
+                  <th className="px-6 py-3 font-medium">연락처</th>
                   <th className="px-6 py-3 font-medium text-right">관리</th>
                 </tr>
               </thead>
@@ -111,6 +113,7 @@ export default function SuperAdminPage() {
                     <td className="px-6 py-4 font-bold text-[#0F172A]">{user.company_name || '미입력'}</td>
                     <td className="px-6 py-4">{user.name}</td>
                     <td className="px-6 py-4 text-[#64748B]">{user.email}</td>
+                    <td className="px-6 py-4 text-[#0F172A] font-medium">{user.phone_number || '-'}</td>
                     <td className="px-6 py-4 text-right">
                       <button 
                         onClick={() => handleApprove(user.id)}
