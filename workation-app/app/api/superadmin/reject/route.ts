@@ -1,4 +1,4 @@
-﻿import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
 export async function POST(request: Request) {
@@ -32,7 +32,9 @@ export async function POST(request: Request) {
 
     // 2. Auth(비밀) 테이블에서 완전히 계정 삭제 (마스터키 권한 필수)
     const { error: authError } = await supabase.auth.admin.deleteUser(userId)
-    if (authError) {
+    
+    // 에러가 났는데 그게 "유저를 찾을 수 없음(하드코딩된 가짜 데이터)"인 경우는 무시하고 성공 처리
+    if (authError && authError.status !== 404) {
       return NextResponse.json({ error: authError.message }, { status: 500 })
     }
 
