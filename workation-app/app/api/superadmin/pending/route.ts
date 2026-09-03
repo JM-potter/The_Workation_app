@@ -24,5 +24,8 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json(data)
+  return NextResponse.json({
+    debugKey: supabaseKey ? supabaseKey.substring(0, 15) + '...' : 'MISSING',
+    data: data
+  })
 }
