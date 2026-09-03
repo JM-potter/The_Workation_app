@@ -12,7 +12,12 @@ export async function GET() {
   }
 
   // 서비스 롤 키(마스터키)를 사용하여 클라이언트 생성 (RLS 우회)
-  const supabase = createClient(supabaseUrl, supabaseKey)
+  // Next.js의 fetch 캐싱이 supabase 요청을 가로채지 못하도록 강제 비활성화
+  const supabase = createClient(supabaseUrl, supabaseKey, {
+    global: {
+      fetch: (url, options) => fetch(url, { ...options, cache: 'no-store' })
+    }
+  })
 
   const { data, error } = await supabase
     .from('users')
