@@ -31,11 +31,12 @@ export default function SuperAdminPage() {
 
   async function fetchPendingUsers() {
     setLoading(true)
-    // users 테이블에서 status가 pending인 유저들 조회
+    // users 테이블에서 status가 pending이고 role이 hr인 유저들만 조회
     const { data, error } = await supabase
       .from('users')
       .select('*')
       .eq('status', 'pending')
+      .eq('role', 'hr')
     
     if (data) {
       setUsers(data as PendingUser[])
