@@ -69,6 +69,30 @@ export default function SuperAdminPage() {
     }
   }
 
+  async function handleReject(userId: string) {
+    if (!confirm('정말로 이 가입 요청을 거절하고 계정을 삭제하시겠습니까?')) return;
+    
+    try {
+      const res = await fetch('/api/superadmin/reject', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId })
+      })
+      
+      const data = await res.json()
+      
+      if (res.ok && data.success) {
+        alert('성공적으로 삭제되었습니다.')
+        fetchPendingUsers()
+      } else {
+        alert('삭제 중 오류가 발생했습니다: ' + (data.error || 'Unknown error'))
+      }
+    } catch (error) {
+      alert('삭제 요청 중 네트워크 오류가 발생했습니다.')
+      console.error(error)
+    }
+  }
+
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">불러오는 중...</div>
   }
@@ -125,12 +149,20 @@ export default function SuperAdminPage() {
                     <td className="px-6 py-4 text-[#64748B]">{user.email}</td>
                     <td className="px-6 py-4 text-[#0F172A] font-medium">{user.phone_number || '-'}</td>
                     <td className="px-6 py-4 text-right">
-                      <button 
-                        onClick={() => handleApprove(user.id)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors"
-                      >
-                        승인하기
-                      </button>
+                      <div className="flex justify-end gap-2">
+                        <button 
+                          onClick={() => handleApprove(user.id)}
+                          className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors"
+                        >
+                          승인하기
+                        </button>
+                        <button 
+                          onClick={() => handleReject(user.id)}
+                          className="bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold px-4 py-2 rounded-lg transition-colors"
+                        >
+                          거절(삭제)
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
