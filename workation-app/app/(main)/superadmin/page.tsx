@@ -31,32 +31,41 @@ export default function SuperAdminPage() {
 
   async function fetchPendingUsers() {
     setLoading(true)
-    // users 테이블에서 status가 pending이고 role이 hr인 유저들만 조회
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('status', 'pending')
-      .eq('role', 'hr')
-    
-    if (data) {
-      setUsers(data as PendingUser[])
-    } else {
-      console.error(error)
+    try {
+      // 프론트엔드 직접 접근 대신, 우리가 방금 뚫어둔 백엔드(API)로 요청
+      const res = await fetch('/api/superadmin/pending')
+      const data = await res.json()
+      
+      if (res.ok) {
+        setUsers(data as PendingUser[])
+      } else {
+        console.error('Error fetching users:', data.error)
+      }
+    } catch (error) {
+      console.error('Network error:', error)
     }
     setLoading(false)
   }
 
   async function handleApprove(userId: string) {
-    const { error } = await supabase
-      .from('users')
-      .update({ status: 'approved' })
-      .eq('id', userId)
-
-    if (error) {
-      alert('승인 중 오류가 발생했습니다: ' + error.message)
-    } else {
-      alert('성공적으로 승인되었습니다!')
-      fetchPendingUsers()
+    try {
+      const res = await fetch('/api/superadmin/approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId })
+      })
+      
+      const data = await res.json()
+      
+      if (res.ok && data.success) {
+        alert('성공적으로 승인되었습니다!')
+        fetchPendingUsers()
+      } else {
+        alert('승인 중 오류가 발생했습니다: ' + (data.error || 'Unknown error'))
+      }
+    } catch (error) {
+      alert('승인 요청 중 네트워크 오류가 발생했습니다.')
+      console.error(error)
     }
   }
 
