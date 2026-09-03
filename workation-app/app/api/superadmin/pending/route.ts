@@ -25,7 +25,7 @@ export async function GET() {
   }
 
   return NextResponse.json({
-    debugKey: supabaseKey ? supabaseKey.substring(0, 15) + '...' : 'MISSING',
+    debugKey: supabaseKey ? supabaseKey.split('.')[1] : 'MISSING',
     data: data
   })
 }
