@@ -1,0 +1,638 @@
+.root {
+  max-width: 1100px;
+  margin: auto;
+  padding: 0 28px 40px;
+  color: #203c37;
+  background: #f6f7f3;
+  min-height: 100vh;
+  font-size: 15px;
+  line-height: 1.65;
+}
+.root * {
+  box-sizing: border-box;
+}
+.root button {
+  border: 1px solid #ccd8d0;
+  background: white;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  color: #244c42;
+  min-height: 44px;
+}
+.root button:hover {
+  background: #e8f1e9;
+}
+.root button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+.root button:focus-visible,
+.root input:focus-visible,
+.root textarea:focus-visible,
+.root select:focus-visible,
+.root a:focus-visible {
+  outline: 3px solid #ce9842;
+  outline-offset: 3px;
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 0;
+  font-size: 13px;
+  gap: 12px;
+}
+.header a {
+  font-weight: 700;
+}
+.header b {
+  font-size: 11px;
+  background: #e3eadb;
+  border-radius: 5px;
+  padding: 4px 6px;
+  margin-left: 8px;
+}
+.hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  background: #184d40;
+  color: #fff;
+  border-radius: 24px;
+  padding: 38px 36px;
+}
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 2px;
+  font-weight: 700;
+  opacity: 0.75;
+}
+.hero h1 {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.35;
+  margin: 10px 0 12px;
+  letter-spacing: -1px;
+}
+.hero p {
+  color: #c9dfd6;
+  font-size: 14px;
+}
+.hero .question {
+  margin-top: 20px;
+  color: #f2ead5;
+}
+.heroMark {
+  min-width: 180px;
+  border-left: 1px solid #598273;
+  padding-left: 30px;
+  align-self: center;
+  font-size: 24px;
+  line-height: 1.4;
+  color: #efe3bd;
+}
+.heroMark span {
+  display: block;
+  font-size: 9px;
+  letter-spacing: 2px;
+  margin-top: 20px;
+}
+.storage {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 18px;
+  font-size: 12px;
+}
+.hint {
+  color: #61746b;
+  font-size: 12px;
+  margin: 8px 0 16px;
+}
+.feedback {
+  color: #216947;
+  font-size: 13px;
+  min-height: 22px;
+}
+.error {
+  background: #fff1eb;
+  color: #9d3427;
+  border: 1px solid #e4baaa;
+  border-radius: 10px;
+  padding: 12px;
+  margin: 12px 0;
+}
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 12px 0 26px;
+}
+.stats > div {
+  border: 1px solid #dce4db;
+  border-radius: 14px;
+  background: #fff;
+  padding: 20px;
+}
+.stats span,
+.timer span {
+  display: block;
+  font-size: 12px;
+  color: #62766c;
+}
+.stats strong {
+  font-size: 25px;
+  display: block;
+  letter-spacing: -0.5px;
+}
+.stats small {
+  font-size: 14px;
+  font-weight: 400;
+}
+.root .red {
+  color: #b03e2c;
+}
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-bottom: 1px solid #ccd8d0;
+  margin-bottom: 20px;
+}
+.tabs button {
+  border: 0;
+  border-radius: 0;
+  background: none;
+  font-size: 14px;
+  border-bottom: 3px solid transparent;
+  padding: 14px 6px;
+}
+.tabs .selected {
+  border-bottom-color: #276f58;
+  color: #175440;
+}
+.days {
+  display: flex;
+  gap: 8px;
+  overflow: auto;
+  margin-bottom: 20px;
+  padding-bottom: 5px;
+}
+.days button {
+  flex: 1;
+  white-space: nowrap;
+  min-width: 115px;
+  font-size: 13px;
+}
+.days span {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: #617c6e;
+}
+.days .daySelected {
+  background: #e1eee2;
+  border-color: #6c9273;
+}
+.card {
+  background: #fff;
+  border: 1px solid #dce4db;
+  border-radius: 18px;
+  padding: 28px;
+  margin: 20px 0;
+}
+.root h2 {
+  font-size: 20px;
+  letter-spacing: -0.4px;
+  font-weight: 700;
+  margin: 0 0 18px;
+}
+.root h3 {
+  font-weight: 700;
+  font-size: 16px;
+}
+.sectionTitle {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.sectionTitle h2 {
+  margin: 3px 0;
+}
+.pill {
+  font-size: 12px;
+  background: #edf1df;
+  border-radius: 30px;
+  padding: 6px 12px;
+  white-space: nowrap;
+}
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 20px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin: 0 0 18px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.root input:not([type="checkbox"]),
+.root select,
+.root textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #cad7ce;
+  background: #fcfdfb;
+  border-radius: 9px;
+  padding: 11px 12px;
+  color: #243c32;
+  font: inherit;
+  font-weight: 400;
+  min-height: 44px;
+}
+.root textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+.root input[type="checkbox"] {
+  width: 19px;
+  height: 19px;
+  accent-color: #21664d;
+  flex-shrink: 0;
+}
+.root fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.root .primary {
+  background: #21664d;
+  color: #fff;
+  border-color: #21664d;
+}
+.root .primary:hover {
+  background: #194e3b;
+}
+.timer {
+  display: flex;
+  gap: 26px;
+  align-items: center;
+  background: #f2f5ee;
+  border-radius: 14px;
+  padding: 22px;
+  margin-top: 8px;
+}
+.timer strong {
+  font-size: 29px;
+}
+.timer small {
+  font-size: 13px;
+  margin-left: 4px;
+}
+.timer .actions {
+  margin-left: auto;
+}
+.actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.check {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 13px;
+  margin: 20px 0;
+}
+.scores {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+.root details {
+  margin-top: 26px;
+  border-top: 1px solid #e4e8df;
+  padding-top: 16px;
+}
+.root summary {
+  cursor: pointer;
+  font-size: 13px;
+}
+.session {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 1px solid #e3e8df;
+  padding: 10px 0;
+  font-size: 12px;
+}
+.session input {
+  max-width: 240px;
+}
+.photoInput {
+  margin: 12px 0 20px;
+}
+.photoInput img {
+  max-height: 180px;
+  max-width: 100%;
+  border-radius: 8px;
+  margin: 10px 0;
+  object-fit: contain;
+}
+.entry {
+  display: flex;
+  gap: 20px;
+  padding: 20px 0;
+  border-top: 1px solid #e5e9e1;
+  overflow-wrap: anywhere;
+}
+.entry > img {
+  width: 110px;
+  height: 140px;
+  object-fit: contain;
+  background: #f1f4ee;
+  border-radius: 8px;
+}
+.entry > div {
+  min-width: 0;
+  flex: 1;
+}
+.entry p {
+  font-size: 13px;
+  white-space: pre-wrap;
+}
+.entry .actions {
+  margin-top: 12px;
+}
+.empty {
+  padding: 25px 0;
+  color: #6c7e71;
+  font-size: 14px;
+}
+.report {
+  display: none;
+  background: #fff;
+  padding: 30px;
+  border: 1px solid #dce4db;
+  border-radius: 18px;
+  margin-top: 24px;
+}
+.reportVisible {
+  display: block;
+}
+.reportHead {
+  padding: 25px 0;
+  border-bottom: 2px solid #265941;
+  margin-bottom: 24px;
+}
+.reportHead span {
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+.reportHead h1 {
+  font-size: 27px;
+  font-weight: 700;
+  margin: 8px 0;
+}
+.report h2 {
+  margin-top: 28px;
+}
+.report p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.tableWrap {
+  overflow: auto;
+  margin: 15px 0;
+}
+.report table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 12px;
+  min-width: 530px;
+}
+.report th {
+  background: #edf2e9;
+  text-align: left;
+}
+.report th,
+.report td {
+  padding: 12px 9px;
+  border: 1px solid #d2dbcf;
+  vertical-align: top;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.reportNote {
+  border-bottom: 1px solid #dce4db;
+  padding: 14px 0;
+}
+.reportNote p {
+  font-size: 13px;
+}
+.attachments figure {
+  margin: 20px 0;
+  padding: 14px;
+  border: 1px solid #dce4db;
+  break-inside: avoid;
+}
+.attachments img {
+  max-width: 100%;
+  max-height: 600px;
+  object-fit: contain;
+  display: block;
+  margin: 10px auto;
+}
+.attachments figcaption {
+  font-size: 13px;
+}
+.root footer {
+  padding: 35px 0 0;
+  color: #647b6d;
+  font-size: 12px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.root footer span {
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+.root hr {
+  margin: 24px 0;
+}
+.loading {
+  padding: 80px 0;
+  text-align: center;
+}
+@media (max-width: 640px) {
+  .root {
+    padding: 0 16px 24px;
+  }
+  .header {
+    flex-wrap: wrap;
+    padding: 16px 0;
+  }
+  .header > span {
+    font-size: 10px;
+  }
+  .header b {
+    display: none;
+  }
+  .header button {
+    padding: 8px 12px;
+  }
+  .hero {
+    padding: 26px 22px;
+    border-radius: 18px;
+  }
+  .hero h1 {
+    font-size: 27px;
+  }
+  .heroMark {
+    display: none;
+  }
+  .storage {
+    align-items: flex-start;
+  }
+  .storage button {
+    white-space: nowrap;
+    padding: 8px 10px;
+  }
+  .stats {
+    gap: 8px;
+  }
+  .stats > div {
+    padding: 13px 10px;
+  }
+  .stats strong {
+    font-size: 18px;
+  }
+  .stats span {
+    font-size: 10px;
+  }
+  .stats small {
+    font-size: 10px;
+  }
+  .tabs button {
+    font-size: 12px;
+  }
+  .card,
+  .report {
+    padding: 20px 16px;
+  }
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .timer {
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 18px;
+  }
+  .timer .actions {
+    width: 100%;
+    margin: 0;
+  }
+  .timer button {
+    flex: 1;
+  }
+  .scores {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .sectionTitle {
+    align-items: flex-start;
+  }
+  .root h2 {
+    font-size: 18px;
+  }
+  .pill {
+    font-size: 10px;
+  }
+  .entry {
+    gap: 12px;
+  }
+  .entry > img {
+    width: 70px;
+    height: 95px;
+  }
+  .root footer {
+    flex-direction: column;
+  }
+  .reportHead h1 {
+    font-size: 23px;
+  }
+}
+@media print {
+  @page {
+    size: A4;
+    margin: 15mm;
+  }
+  .root {
+    padding: 0;
+    max-width: none;
+    background: white;
+    font-size: 10pt;
+    color: #111;
+  }
+  .noPrint {
+    display: none !important;
+  }
+  .report {
+    display: block !important;
+    border: 0;
+    margin: 0;
+    padding: 0;
+  }
+  .report table {
+    min-width: 0;
+    font-size: 8pt;
+    table-layout: fixed;
+  }
+  .tableWrap {
+    overflow: visible;
+  }
+  .report th,
+  .report td {
+    padding: 6px;
+  }
+  .report thead {
+    display: table-header-group;
+  }
+  .report tr {
+    break-inside: avoid;
+  }
+  .report h2,
+  .report h3 {
+    break-after: avoid;
+  }
+  .attachments {
+    break-before: page;
+  }
+  .attachments img {
+    max-height: 210mm;
+  }
+  .attachments figure {
+    break-inside: avoid;
+  }
+  .reportNote {
+    break-inside: avoid;
+  }
+  .hint {
+    font-size: 8pt;
+  }
+  .reportHead {
+    padding-top: 0;
+  }
+}

@@ -132,6 +132,12 @@ export default function MyPage() {
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       <Header />
+      <div className="max-w-3xl mx-auto px-6 py-3">
+        <Link href="/dashboard/global-lab" className="block rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 hover:bg-emerald-100">
+          <span className="font-bold">일본 여행 기록 · Global Lab</span>
+          <span className="block text-xs mt-1">오늘의 목표부터 휴식, 영수증, 결과 보고서까지 →</span>
+        </Link>
+      </div>
 
       {/* 히어로 */}
       <div className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
