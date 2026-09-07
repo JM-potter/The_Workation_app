@@ -7,6 +7,7 @@ import Header from '@/components/ui/Header'
 import Footer from '@/components/ui/Footer'
 import Button from '@/components/ui/Button'
 import { supabase, BYPASS_AUTH } from '@/lib/supabase'
+import { getMembership, memberHome } from '@/lib/membership-client'
 
 export default function EmployeeSelectPage() {
   const router = useRouter()
@@ -15,7 +16,7 @@ export default function EmployeeSelectPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
+    supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) {
         if (BYPASS_AUTH) {
           setUserName('김지민')
@@ -24,6 +25,8 @@ export default function EmployeeSelectPage() {
           router.push('/login')
         }
       } else {
+        try { const member=await getMembership(); if(member.status!=='approved'||member.role!=='emp'){router.replace(memberHome(member));return} }
+        catch {router.replace('/pending');return}
         const meta = data.user.user_metadata
         setUserName(meta?.name || '임직원')
         setCompanyName(meta?.company_name || '파트너사')

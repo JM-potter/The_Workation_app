@@ -27,24 +27,14 @@ export default function RegisterPage() {
   const [showCompanyList, setShowCompanyList] = useState(false)
   const [companyList, setCompanyList] = useState<string[]>([])
 
-  // 직원일 경우 가입된(승인된) HR 회사 목록 불러오기 (자동완성용)
-  useEffect(() => {
-    if (role === 'emp') {
-      const fetchCompanies = async () => {
-        const { data } = await supabase
-          .from('users')
-          .select('company_name')
-          .eq('role', 'hr')
-          .eq('status', 'approved')
-        
-        if (data) {
-          const uniqueCompanies = Array.from(new Set(data.map(u => u.company_name).filter(Boolean)))
-          setCompanyList(uniqueCompanies as string[])
-        }
-      }
-      fetchCompanies()
-    }
-  }, [role])
+  const [companiesLoading,setCompaniesLoading]=useState(false)
+  const [companiesError,setCompaniesError]=useState('')
+  async function loadCompanies(){
+    setCompaniesLoading(true);setCompaniesError('')
+    try {const response=await fetch('/api/companies',{cache:'no-store'});const result=await response.json();if(!response.ok)throw new Error(result.error||'회사 목록을 불러오지 못했습니다.');setCompanyList(result.companies)}
+    catch(e){setCompanyList([]);setCompaniesError((e as Error).message)}finally{setCompaniesLoading(false)}
+  }
+  useEffect(()=>{if(role==='emp')void loadCompanies()},[role])
 
   async function handleRegister() {
     if (!role || !name || !email || !password || !companyName) {
@@ -56,6 +46,8 @@ export default function RegisterPage() {
       return
     }
 
+    if(loading)return
+    if(role==='emp'&&(companiesLoading||companiesError||!companyList.includes(companyName))){setError('검색 목록에서 승인된 소속 회사를 선택해 주세요.');return}
     setError('')
     setLoading(true)
     try {
@@ -66,7 +58,7 @@ export default function RegisterPage() {
           data: { 
             name, 
             role,
-            company_name: companyName,
+            company_name: role === 'hr' ? companyName.trim() : companyName,
             status: 'pending', // 신규 가입자는 무조건 승인 대기 상태
             phone_number: role === 'hr' ? phoneNumber : null
           } 
@@ -133,20 +125,20 @@ export default function RegisterPage() {
               onBlur={() => setTimeout(() => setShowCompanyList(false), 200)}
             />
             
-            {role === 'emp' && showCompanyList && companyName.length > 0 && (
+            {role === 'emp' && !companiesLoading && !companiesError && showCompanyList && companyName.length > 0 && (
               <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                {companyList.filter(c => c.includes(companyName)).length > 0 ? (
-                  companyList.filter(c => c.includes(companyName)).map((c, idx) => (
-                    <div 
+                {companyList.filter(c => c.toLowerCase().includes(companyName.toLowerCase())).length > 0 ? (
+                  companyList.filter(c => c.toLowerCase().includes(companyName.toLowerCase())).map((c, idx) => (
+                    <button type="button"
                       key={idx} 
-                      className="px-4 py-2 hover:bg-slate-50 cursor-pointer text-sm text-slate-700 border-b last:border-0"
+                      className="block w-full text-left px-4 py-2 hover:bg-slate-50 cursor-pointer text-sm text-slate-700 border-b last:border-0"
                       onClick={() => {
                         setCompanyName(c)
                         setShowCompanyList(false)
                       }}
                     >
                       {c}
-                    </div>
+                    </button>
                   ))
                 ) : (
                   <div className="px-4 py-3 text-sm text-slate-500 bg-slate-50">
@@ -157,6 +149,9 @@ export default function RegisterPage() {
             )}
           </div>
 
+          {role==='emp'&&companiesLoading&&<p className="text-sm text-slate-500">등록된 회사를 확인하는 중입니다…</p>}
+          {role==='emp'&&companiesError&&<div role="alert" className="text-sm text-red-600">{companiesError}<button type="button" onClick={loadCompanies} className="ml-2 underline">다시 불러오기</button></div>}
+          {role==='emp'&&<p className="text-xs text-slate-500">인사담당자가 플랫폼 승인을 완료한 회사만 검색됩니다. 회사 선택 후 가입하면 해당 회사 인사담당자에게 승인 대기로 표시됩니다.</p>}
           {/* HR 전용 연락처 */}
           {role === 'hr' && (
             <div className="animate-in fade-in slide-in-from-top-2 duration-300">
@@ -174,6 +169,7 @@ export default function RegisterPage() {
           {error && <p className="text-sm text-red-500 text-center font-medium bg-red-50 py-2 rounded-lg">{error}</p>}
           
           <button
+            disabled={loading || (role==='emp' && companiesLoading)}
             onClick={handleRegister}
             style={{ background: '#3B82F6', color: 'white', width: '100%', padding: '14px', borderRadius: '12px', fontWeight: 700, fontSize: '16px', border: 'none', cursor: 'pointer', marginTop: '4px' }}
           >

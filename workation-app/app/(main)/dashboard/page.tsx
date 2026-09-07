@@ -74,6 +74,7 @@ export default function DashboardPage() {
             <p className="text-sm text-[#475569]">2026년 하반기 전사 워케이션 현황판</p>
           </div>
           <div className="flex gap-3">
+            <Link href="/members" className="bg-white border border-blue-200 text-blue-700 px-4 py-2.5 rounded-xl font-bold">직원 가입 승인</Link>
             <Link href="/dashboard/report">
               <button className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-md">
                 <span>📊</span> 상세 성과 리포트 보기
