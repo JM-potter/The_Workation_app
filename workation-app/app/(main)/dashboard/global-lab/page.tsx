@@ -976,6 +976,7 @@ export default function GlobalLab() {
                       <button
                         type="button"
                         onClick={() => {
+                          draftRef.current = false;
                           setEditExpense(null);
                           setReceipt("");
                           setFormKey((k) => k + 1);
