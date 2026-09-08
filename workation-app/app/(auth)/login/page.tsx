@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { supabase, BYPASS_AUTH } from '@/lib/supabase'
-import { getMembership, memberHome } from '@/lib/membership-client'
+import { getMembership, memberHome, memberRequest } from '@/lib/membership-client'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -18,21 +18,19 @@ export default function LoginPage() {
   async function handleLogin() {
     setError('')
 
-    // Super Admin Bypass
-    if (email === 'theworkation' && password === 'tndnjseo123') {
-      if (typeof window !== 'undefined') localStorage.setItem('superadmin_token', 'true')
-      router.push('/superadmin')
-      return
-    }
-
     setLoading(true)
     const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password })
     setLoading(false)
     if (authError) {
       setError('이메일 또는 비밀번호가 올바르지 않아요')
     } else {
-      try { router.push(memberHome(await getMembership())) }
-      catch { router.push('/pending') }
+      try {
+        await memberRequest('/api/superadmin/pending')
+        router.push('/superadmin')
+      } catch {
+        try { router.push(memberHome(await getMembership())) }
+        catch { router.push('/pending') }
+      }
     }
   }
 

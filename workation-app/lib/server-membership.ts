@@ -22,6 +22,16 @@ export async function authenticatedMember(request: Request, db: SupabaseClient) 
   if (!data) throw new MembershipError('가입 정보 반영을 기다리고 있습니다. 잠시 후 다시 확인해 주세요.', 409)
   return data as Membership
 }
+export async function requireSuperAdmin(request: Request, db: SupabaseClient) {
+  const token = request.headers.get('authorization')?.match(/^Bearer (\S+)$/i)?.[1]
+  if (!token) throw new MembershipError('로그인이 필요합니다.', 401)
+  const { data: auth, error: authError } = await db.auth.getUser(token)
+  if (authError || !auth.user) throw new MembershipError('다시 로그인해 주세요.', 401)
+  const adminEmail = process.env.SUPERADMIN_EMAIL?.trim().toLowerCase()
+  if (!adminEmail) throw new MembershipError('슈퍼관리자 설정을 확인해 주세요.', 503)
+  if (auth.user.email?.trim().toLowerCase() !== adminEmail) throw new MembershipError('슈퍼관리자 권한이 필요합니다.', 403)
+  return auth.user
+}
 export function requireApprovedHr(member: Membership) {
   if (member.role !== 'hr' || member.status !== 'approved') throw new MembershipError('승인된 인사담당자만 직원 신청을 관리할 수 있습니다.', 403)
   if (!member.company_name?.trim()) throw new MembershipError('계정에 등록된 회사 정보가 없습니다.', 409)
