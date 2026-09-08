@@ -11,6 +11,7 @@ const roles = [
   { value: 'hr',  label: '인사담당자', desc: '기업 예약·예산 관리' },
   { value: 'emp', label: '직원',       desc: '개인 워케이션 예약' },
 ]
+type CompanyOption = { id: string; name: string }
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -19,19 +20,20 @@ export default function RegisterPage() {
   const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
   const [companyName, setCompanyName] = useState('')
+  const [companyId, setCompanyId] = useState('')
   const [phoneNumber, setPhoneNumber] = useState('')
   
   const [error, setError]       = useState('')
   const [loading, setLoading]   = useState(false)
   
   const [showCompanyList, setShowCompanyList] = useState(false)
-  const [companyList, setCompanyList] = useState<string[]>([])
+  const [companyList, setCompanyList] = useState<CompanyOption[]>([])
 
   const [companiesLoading,setCompaniesLoading]=useState(false)
   const [companiesError,setCompaniesError]=useState('')
   async function loadCompanies(){
     setCompaniesLoading(true);setCompaniesError('')
-    try {const response=await fetch('/api/companies',{cache:'no-store'});const result=await response.json();if(!response.ok)throw new Error(result.error||'회사 목록을 불러오지 못했습니다.');setCompanyList(result.companies)}
+    try {const response=await fetch('/api/companies',{cache:'no-store'});const result=await response.json();if(!response.ok)throw new Error(result.error||'회사 목록을 불러오지 못했습니다.');setCompanyList(Array.isArray(result.companies)?result.companies:[])}
     catch(e){setCompanyList([]);setCompaniesError((e as Error).message)}finally{setCompaniesLoading(false)}
   }
   useEffect(()=>{if(role==='emp')void loadCompanies()},[role])
@@ -47,7 +49,7 @@ export default function RegisterPage() {
     }
 
     if(loading)return
-    if(role==='emp'&&(companiesLoading||companiesError||!companyList.includes(companyName))){setError('검색 목록에서 승인된 소속 회사를 선택해 주세요.');return}
+    if(role==='emp'&&(companiesLoading||companiesError||!companyId)){setError('검색 목록에서 승인된 소속 회사를 선택해 주세요.');return}
     setError('')
     setLoading(true)
     try {
@@ -58,8 +60,7 @@ export default function RegisterPage() {
           data: { 
             name, 
             role,
-            company_name: role === 'hr' ? companyName.trim() : companyName,
-            status: 'pending', // 신규 가입자는 무조건 승인 대기 상태
+            ...(role === 'hr' ? { company_name: companyName.trim() } : { company_id: companyId }),
             phone_number: role === 'hr' ? phoneNumber : null
           } 
         },
@@ -119,6 +120,7 @@ export default function RegisterPage() {
               value={companyName} 
               onChange={e => {
                 setCompanyName(e.target.value)
+                if (role === 'emp') setCompanyId('')
                 setShowCompanyList(true)
               }}
               onFocus={() => setShowCompanyList(true)}
@@ -127,17 +129,18 @@ export default function RegisterPage() {
             
             {role === 'emp' && !companiesLoading && !companiesError && showCompanyList && companyName.length > 0 && (
               <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                {companyList.filter(c => c.toLowerCase().includes(companyName.toLowerCase())).length > 0 ? (
-                  companyList.filter(c => c.toLowerCase().includes(companyName.toLowerCase())).map((c, idx) => (
+                {companyList.filter(c => c.name.toLowerCase().includes(companyName.toLowerCase())).length > 0 ? (
+                  companyList.filter(c => c.name.toLowerCase().includes(companyName.toLowerCase())).map((c) => (
                     <button type="button"
-                      key={idx} 
+                      key={c.id}
                       className="block w-full text-left px-4 py-2 hover:bg-slate-50 cursor-pointer text-sm text-slate-700 border-b last:border-0"
                       onClick={() => {
-                        setCompanyName(c)
+                        setCompanyName(c.name)
+                        setCompanyId(c.id)
                         setShowCompanyList(false)
                       }}
                     >
-                      {c}
+                      {c.name}
                     </button>
                   ))
                 ) : (

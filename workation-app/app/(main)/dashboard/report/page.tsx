@@ -3,7 +3,7 @@ import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import Footer from '@/components/ui/Footer'
 import Header from '@/components/ui/Header'
-import { supabase } from '@/lib/supabase'
+import { memberRequest } from '@/lib/membership-client'
 
 const PERF_BENCHMARKS = [
   { label: '업무 집중도',  before: 68, after: 84, unit: '%', icon: '🎯', desc: '일일 집중 시간 비율' },
@@ -40,8 +40,6 @@ function daysBetween(start: string, end: string) {
 }
 
 export default function ReportPage() {
-  // Hardcoded for demo mode
-
   const [bookings,   setBookings]   = useState<BookingRow[]>([])
   const [subsidies,  setSubsidies]  = useState<SubsidyRow[]>([])
   const [companyName, setCompany]   = useState('우리 회사')
@@ -52,27 +50,11 @@ export default function ReportPage() {
   const [aiReports,  setAiReports]  = useState<any[]>([])
 
   useEffect(() => {
-    // Hardcoded mock data bypasses fetch
-    setBookings([
-      { id: '1', start_date: '2026-07-10', end_date: '2026-07-12', guests: 2, total_price: 180000, status: 'confirmed', accommodations: { name: '강릉 홍보 체험형 워케이션', region: '강원도 강릉시', location: '' } },
-      { id: '2', start_date: '2026-07-15', end_date: '2026-07-18', guests: 1, total_price: 240000, status: 'confirmed', accommodations: { name: '제주 애월 바다 전망 오피스', region: '제주특별자치도 제주시', location: '' } },
-      { id: '3', start_date: '2026-07-20', end_date: '2026-07-22', guests: 3, total_price: 320000, status: 'confirmed', accommodations: { name: '속초 설악산 전망 워케이션', region: '강원특별자치도 속초시', location: '' } },
-    ] as any)
-    setSubsidies([
-      { region: '강원도', name: '강원도 워케이션 체류 지원', amount_per_person: 50000 },
-      { region: '제주특별자치도', name: '제주도 청년 워케이션 바우처', amount_per_person: 40000 },
-    ])
-    setCompany('더 워케이션 데모 기업')
-    setLoading(false)
-
-    // 실제 제출된 리포트 DB에서 불러오기
-    supabase
-      .from('ai_reports')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .then(({ data }) => {
-        if (data) setAiReports(data)
-      })
+    memberRequest('/api/hr/dashboard').then((data) => {
+      setBookings((data.bookings || []).map((booking: any) => ({ ...booking, accommodations: booking.accommodation || null })))
+      setAiReports(data.reports || [])
+      setCompany(data.company || '회사')
+    }).finally(() => setLoading(false))
   }, [])
 
   const confirmed = bookings

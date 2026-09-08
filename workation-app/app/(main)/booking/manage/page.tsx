@@ -5,7 +5,7 @@ import Footer from '@/components/ui/Footer'
 import Header from '@/components/ui/Header'
 import Button from '@/components/ui/Button'
 import { useHrOnly } from '@/lib/useHrOnly'
-import { supabase } from '@/lib/supabase'
+import { memberRequest } from '@/lib/membership-client'
 
 type BookingStatus = 'confirmed' | 'pending' | 'cancelled'
 
@@ -46,15 +46,9 @@ export default function BookingManagePage() {
   const [confirmDelete, setConfirmDelete] = useState(false)
 
   useEffect(() => {
-    supabase
-      .from('bookings')
-      .select('*, accommodations(name, region)')
-      .order('id', { ascending: false })
-      .limit(20)
-      .then(({ data }) => {
-        if (data) setBookings(data as Booking[])
-        setLoading(false)
-      })
+    memberRequest('/api/bookings').then(({ bookings: data }) => {
+      setBookings(data as Booking[])
+    }).catch((error) => alert(error instanceof Error ? error.message : '예약 정보를 불러오지 못했습니다.')).finally(() => setLoading(false))
   }, [])
 
   const booking = bookings.find(b => b.id === selected)
@@ -81,15 +75,9 @@ export default function BookingManagePage() {
     )))
     const newTotal = Math.round(pricePerNight) * nights * newGuests
 
-    const { error } = await supabase.from('bookings').update({
-      start_date:  newCheckIn,
-      end_date:    newCheckOut,
-      guests:      newGuests,
-      total_price: newTotal,
-    }).eq('id', selected)
-
+    try { await memberRequest('/api/bookings', { method: 'PATCH', body: JSON.stringify({ id: selected, startDate: newCheckIn, endDate: newCheckOut, guests: newGuests, totalPrice: newTotal }) }) }
+    catch (error) { setSaving(false); alert('변경 실패: ' + (error instanceof Error ? error.message : '다시 시도해 주세요.')); return }
     setSaving(false)
-    if (error) { alert('변경 실패: ' + error.message); return }
 
     setBookings(prev => prev.map(b =>
       b.id === selected ? { ...b, start_date: newCheckIn, end_date: newCheckOut, guests: newGuests, total_price: newTotal } : b
@@ -101,9 +89,9 @@ export default function BookingManagePage() {
   async function deleteBooking() {
     if (!selected) return
     setSaving(true)
-    const { error } = await supabase.from('bookings').delete().eq('id', selected)
+    try { await memberRequest(`/api/bookings?id=${encodeURIComponent(selected)}`, { method: 'DELETE' }) }
+    catch (error) { setSaving(false); alert('삭제 실패: ' + (error instanceof Error ? error.message : '다시 시도해 주세요.')); return }
     setSaving(false)
-    if (error) { alert('삭제 실패: ' + error.message); return }
     setBookings(prev => prev.filter(b => b.id !== selected))
     setSelected(null)
     setConfirmDelete(false)
@@ -112,9 +100,9 @@ export default function BookingManagePage() {
   async function applyCancel() {
     if (!selected) return
     setSaving(true)
-    const { error } = await supabase.from('bookings').update({ status: 'cancelled' }).eq('id', selected)
+    try { await memberRequest('/api/bookings', { method: 'PATCH', body: JSON.stringify({ id: selected, status: 'cancelled' }) }) }
+    catch (error) { setSaving(false); alert('취소 실패: ' + (error instanceof Error ? error.message : '다시 시도해 주세요.')); return }
     setSaving(false)
-    if (error) { alert('취소 실패: ' + error.message); return }
 
     setBookings(prev => prev.map(b =>
       b.id === selected ? { ...b, status: 'cancelled' } : b
