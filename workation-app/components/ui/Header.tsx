@@ -54,9 +54,9 @@ export default function Header({ role: roleProp, userName: nameProp }: HeaderPro
             <Image
               src="/logo.png"
               alt="더 워케이션"
-              width={160}
-              height={20}
-              className="w-32 md:w-36 h-auto object-contain"
+              width={1233}
+              height={511}
+              className="h-10 w-auto md:h-12 object-contain"
               priority
             />
           </Link>

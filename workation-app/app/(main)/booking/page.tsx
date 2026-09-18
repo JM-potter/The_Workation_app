@@ -6,6 +6,7 @@ import Header from '@/components/ui/Header'
 import Button from '@/components/ui/Button'
 import { supabase } from '@/lib/supabase'
 import { useAuthOnly } from '@/lib/useAuthOnly'
+import { memberRequest } from '@/lib/membership-client'
 
 const STEPS = ['날짜·인원 선택', '업무 목표 설정', '지원금 확인', '최종 확인']
 
@@ -74,22 +75,14 @@ function BookingContent() {
 
   async function handleBookingComplete() {
     setSaving(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    const { error } = await supabase.from('bookings').insert({
-      user_id:          user?.id ?? null,
-      accommodation_id: accId,
-      start_date:       checkIn  || '2026-06-10',
-      end_date:         checkOut || '2026-06-13',
-      guests,
-      total_price:      finalTotal,
-      status:           'confirmed',
-      payment_type:     paymentType,
-    })
-    setSaving(false)
-    if (error) {
-      alert('예약 저장 실패: ' + error.message)
+    try {
+      await memberRequest('/api/bookings', { method: 'POST', body: JSON.stringify({ accommodationId: accId, startDate: checkIn, endDate: checkOut, guests, totalPrice: finalTotal, paymentType }) })
+    } catch (error) {
+      setSaving(false)
+      alert('예약 저장 실패: ' + (error instanceof Error ? error.message : '다시 시도해 주세요.'))
       return
     }
+    setSaving(false)
 
     // 목표를 로컬 스토리지에 저장 (데모 및 워케이션 대시보드 연동용)
     const validGoals = goals.filter(g => g.trim() !== '')

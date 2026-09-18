@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import { memberRequest } from '@/lib/membership-client'
 
 type PendingUser = {
   id: string
@@ -17,56 +18,37 @@ export default function SuperAdminPage() {
   const router = useRouter()
   const [users, setUsers] = useState<PendingUser[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   useEffect(() => {
-    // 보안 통과 체크 (로컬 스토리지 기반 간단한 우회 확인)
-    const token = localStorage.getItem('superadmin_token')
-    if (!token) {
-      alert('접근 권한이 없습니다.')
-      router.push('/login')
-      return
-    }
     fetchPendingUsers()
   }, [router])
 
   async function fetchPendingUsers() {
     setLoading(true)
+    setError('')
     try {
-      // 프론트엔드 직접 접근 대신, 우리가 방금 뚫어둔 백엔드(API)로 요청
-      // 브라우저 캐싱 방지를 위해 no-store 옵션과 타임스탬프 추가
-      const res = await fetch('/api/superadmin/pending?t=' + Date.now(), { cache: 'no-store' })
-      const data = await res.json()
-      
-      if (res.ok) {
-        setUsers(data as PendingUser[])
-      } else {
-        console.error('Error fetching users:', data.error)
-      }
+      const data = await memberRequest('/api/superadmin/pending')
+      setUsers(data as PendingUser[])
     } catch (error) {
-      console.error('Network error:', error)
+      setUsers([])
+      setError(error instanceof Error ? error.message : '가입 요청을 불러오지 못했습니다.')
     }
     setLoading(false)
   }
 
   async function handleApprove(userId: string) {
     try {
-      const res = await fetch('/api/superadmin/approve', {
+      const data = await memberRequest('/api/superadmin/approve', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId })
       })
-      
-      const data = await res.json()
-      
-      if (res.ok && data.success) {
+      if (data.success) {
         alert('성공적으로 승인되었습니다!')
         fetchPendingUsers()
-      } else {
-        alert('승인 중 오류가 발생했습니다: ' + (data.error || 'Unknown error'))
       }
     } catch (error) {
-      alert('승인 요청 중 네트워크 오류가 발생했습니다.')
-      console.error(error)
+      alert(error instanceof Error ? error.message : '승인 요청을 처리하지 못했습니다.')
     }
   }
 
@@ -74,23 +56,16 @@ export default function SuperAdminPage() {
     if (!confirm('정말로 이 가입 요청을 거절하고 계정을 삭제하시겠습니까?')) return;
     
     try {
-      const res = await fetch('/api/superadmin/reject', {
+      const data = await memberRequest('/api/superadmin/reject', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId })
       })
-      
-      const data = await res.json()
-      
-      if (res.ok && data.success) {
+      if (data.success) {
         alert('성공적으로 삭제되었습니다.')
         fetchPendingUsers()
-      } else {
-        alert('삭제 중 오류가 발생했습니다: ' + (data.error || 'Unknown error'))
       }
     } catch (error) {
-      alert('삭제 요청 중 네트워크 오류가 발생했습니다.')
-      console.error(error)
+      alert(error instanceof Error ? error.message : '가입 요청을 처리하지 못했습니다.')
     }
   }
 
@@ -109,15 +84,17 @@ export default function SuperAdminPage() {
             <p className="text-sm text-[#475569] mt-1">기업(HR) 가입 요청 승인 및 플랫폼 전체 관리</p>
           </div>
           <button 
-            onClick={() => {
-              localStorage.removeItem('superadmin_token')
-              router.push('/login')
+            onClick={async () => {
+              await supabase.auth.signOut()
+              router.replace('/login')
             }}
             className="text-sm text-red-500 hover:underline font-medium"
           >
             로그아웃
           </button>
         </div>
+
+        {error && <div role="alert" className="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
 
         <div className="bg-white rounded-2xl shadow-sm border border-[#E2E8F0] overflow-hidden">
           <div className="px-6 py-4 border-b border-[#E2E8F0] bg-slate-50 flex items-center justify-between">

@@ -1,295 +1,54 @@
 'use client'
-import { useState, useEffect } from 'react'
-import Header from '@/components/ui/Header'
-import Button from '@/components/ui/Button'
+
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import Footer from '@/components/ui/Footer'
-import { supabase } from '@/lib/supabase'
+import Header from '@/components/ui/Header'
+import { memberRequest } from '@/lib/membership-client'
 
-const HARDCODED_BOOKINGS = [
-  { id: '1', user_id: 'u1', userName: '김지민 (기획팀)', start_date: '2026-07-10', end_date: '2026-07-12', guests: 2, total_price: 180000, status: 'confirmed', accommodations: { name: '강릉 홍보 체험형 워케이션', region: '강원도 강릉시' } },
-  { id: '2', user_id: 'u2', userName: '이개발 (개발팀)', start_date: '2026-07-15', end_date: '2026-07-18', guests: 1, total_price: 240000, status: 'confirmed', accommodations: { name: '제주 애월 바다 전망 오피스', region: '제주특별자치도 제주시' } },
-  { id: '3', user_id: 'u3', userName: '박디잔 (디자인팀)', start_date: '2026-07-20', end_date: '2026-07-22', guests: 3, total_price: 320000, status: 'confirmed', accommodations: { name: '속초 설악산 전망 워케이션', region: '강원특별자치도 속초시' } },
-  { id: '4', user_id: 'u1', userName: '김지민 (기획팀)', start_date: '2026-08-01', end_date: '2026-08-03', guests: 2, total_price: 150000, status: 'pending', accommodations: { name: '전주 한옥마을 스테이', region: '전라북도 전주시' } },
-]
+type Member = { id: string; name: string | null; email: string; status: string }
+type Booking = { id: string; user_id: string; start_date: string; end_date: string; guests: number; total_price: number; status: string; payment_type: string | null; member: Member | null; accommodation: { name: string; region: string } | null }
+type Report = { id: string; github_id: string | null; report_text: string; github_minutes: number | null; created_at: string; member: Member | null }
+type Dashboard = { company: string; members: Member[]; bookings: Booking[]; reports: Report[] }
 
-const HARDCODED_SUBSIDY_USAGE = [
-  { userName: '김지민 (기획팀)', subsidyName: '강원도 워케이션 체류 지원', region: '강원도 강릉시', date: '2026-07-10', amount: 100000, isDuplicate: false },
-  { userName: '이개발 (개발팀)', subsidyName: '제주도 청년 워케이션 바우처', region: '제주도 제주시', date: '2026-07-15', amount: 40000, isDuplicate: false },
-  { userName: '박디잔 (디자인팀)', subsidyName: '강원도 워케이션 체류 지원', region: '강원도 속초시', date: '2026-07-20', amount: 150000, isDuplicate: false },
-  { userName: '김지민 (기획팀)', subsidyName: '전라북도 한옥마을 지원', region: '전라북도 전주시', date: '2026-08-01', amount: 60000, isDuplicate: true },
-]
+const nameOf = (member: Member | null) => member?.name?.trim() || member?.email || '알 수 없는 직원'
+const won = (amount: number) => `${amount.toLocaleString()}원`
 
 export default function DashboardPage() {
-  const [bookings, setBookings] = useState<any[]>([])
-  const [subsidyUsage, setSubsidyUsage] = useState<any[]>(HARDCODED_SUBSIDY_USAGE)
+  const [data, setData] = useState<Dashboard | null>(null)
   const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    async function loadData() {
-      // 1. 예약 데이터 불러오기
-      const { data: bData } = await supabase.from('bookings').select('*').order('created_at', { ascending: false })
-      // 2. 숙소 데이터 불러오기 (join 대용)
-      const { data: aData } = await supabase.from('accommodations').select('*')
-      
-      if (bData && aData && bData.length > 0) {
-        const enriched = bData.map(b => {
-          const acc = aData.find(a => a.id === b.accommodation_id)
-          return {
-            ...b,
-            userName: b.user_id ? `임직원 (${b.user_id.substring(0,4)})` : '테스트 직원',
-            accommodations: acc || { name: '등록된 숙소', region: '지역 정보 없음' }
-          }
-        })
-        setBookings(enriched)
-      } else {
-        // 아직 실제 예약이 없을 경우 화면을 위해 하드코딩 데이터 표시
-        setBookings(HARDCODED_BOOKINGS)
-      }
-      setLoading(false)
-    }
-    loadData()
+  const [error, setError] = useState('')
+  const load = useCallback(async () => {
+    setLoading(true); setError('')
+    try { setData(await memberRequest('/api/hr/dashboard') as Dashboard) }
+    catch (e) { setData(null); setError(e instanceof Error ? e.message : '대시보드 데이터를 불러오지 못했습니다.') }
+    finally { setLoading(false) }
   }, [])
-  
-  const confirmedBookings = bookings.filter(b => b.status === 'confirmed')
-  const corporateBookings = confirmedBookings.filter(b => b.payment_type !== 'personal')
-  const totalAmount       = corporateBookings.reduce((s, b) => s + b.total_price, 0)
-  const totalGuests       = confirmedBookings.reduce((s, b) => s + b.guests, 0)
+  useEffect(() => { load() }, [load])
 
-  const budgetTotal = 5000000
-  const budgetUsed  = totalAmount
-  const budgetPct   = Math.min(100, Math.round((budgetUsed / budgetTotal) * 100))
+  const members = data?.members || [], bookings = data?.bookings || [], reports = data?.reports || []
+  const confirmed = bookings.filter((booking) => booking.status === 'confirmed')
+  const companySpend = confirmed.filter((booking) => booking.payment_type !== 'personal').reduce((sum, booking) => sum + (booking.total_price || 0), 0)
+  const participantCount = confirmed.map((booking) => booking.user_id).filter((id, index, values) => values.indexOf(id) === index).length
+  const cards = [
+    ['등록 직원', `${members.length}명`, `승인 대기 ${members.filter((member) => member.status === 'pending').length}명`, 'text-blue-600'],
+    ['참여 직원', `${participantCount}명`, '예약 확정 기준', 'text-emerald-600'],
+    ['전체 예약', `${bookings.length}건`, `확정 ${confirmed.length}건`, 'text-amber-600'],
+    ['회사 예산 사용', won(companySpend), '확정 예약 기준', 'text-purple-600'],
+  ]
 
-  return (
-    <div className="min-h-screen bg-[#F8FAFC]">
-      <Header role="hr" />
-
-      <div className="max-w-5xl mx-auto px-6 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <h1 className="text-2xl font-black">🏢 통합 HR 대시보드</h1>
-              <span className="bg-blue-100 text-blue-600 text-xs font-bold px-2 py-0.5 rounded-full border border-blue-200">데모 모드</span>
-            </div>
-            <p className="text-sm text-[#475569]">2026년 하반기 전사 워케이션 현황판</p>
-          </div>
-          <div className="flex gap-3">
-            <Link href="/dashboard/report">
-              <button className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-md">
-                <span>📊</span> 상세 성과 리포트 보기
-              </button>
-            </Link>
-          </div>
-        </div>
-
-        {/* 🎯 전사 워케이션 ROI 카드 */}
-        <div className="grid grid-cols-2 gap-5 mb-8">
-          <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl p-6 text-white shadow-lg relative overflow-hidden group">
-            <div className="absolute -right-10 -bottom-10 text-9xl opacity-10 group-hover:scale-110 transition-transform">🎯</div>
-            <div className="relative z-10">
-              <div className="flex justify-between items-start mb-4">
-                <span className="bg-white/20 px-3 py-1 rounded-full text-xs font-bold border border-white/30 backdrop-blur-sm">OKR 달성률</span>
-                <span className="text-blue-200 text-xs flex items-center gap-1">전월 대비 <span className="text-white font-bold">↑ 12%</span></span>
-              </div>
-              <div className="text-sm text-blue-100 mb-1">워케이션 평균 목표 달성률</div>
-              <div className="text-4xl font-black tracking-tight mb-2">92<span className="text-2xl font-bold ml-1">%</span></div>
-              <p className="text-xs text-blue-200 leading-relaxed max-w-[80%]">워케이션 참가자들의 스스로 설정한 목표 대비 매우 높은 성과를 달성하고 있습니다.</p>
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl p-6 text-white shadow-lg relative overflow-hidden group">
-            <div className="absolute -right-10 -bottom-10 text-9xl opacity-10 group-hover:scale-110 transition-transform">🔋</div>
-            <div className="relative z-10">
-              <div className="flex justify-between items-start mb-4">
-                <span className="bg-white/20 px-3 py-1 rounded-full text-xs font-bold border border-white/30 backdrop-blur-sm">번아웃 회복 지수</span>
-                <span className="text-teal-100 text-xs flex items-center gap-1">전사 평균 <span className="text-white font-bold">78점</span></span>
-              </div>
-              <div className="text-sm text-teal-100 mb-1">참가자 스트레스 감소율</div>
-              <div className="text-4xl font-black tracking-tight mb-2">↓ 42<span className="text-2xl font-bold ml-1">%</span></div>
-              <p className="text-xs text-teal-100 leading-relaxed max-w-[80%]">워케이션 복귀 후 업무 의욕이 상승하며, 퇴사 리스크가 크게 감소하는 효과를 보입니다.</p>
-            </div>
-          </div>
-        </div>
-
-        {/* All-in-One 공문서 자동화 (Auto-Docs) */}
-        <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-8 mb-8 shadow-lg relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/20 blur-3xl rounded-full -translate-y-1/2 translate-x-1/2" />
-          <div className="relative z-10">
-            <div className="flex items-center gap-3 mb-2">
-              <span className="bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full text-xs font-black border border-blue-400/30">Auto-Docs</span>
-              <span className="text-white/60 text-sm font-medium">서류 작업 시간 0시간, 지자체 양식 100% 자동 변환</span>
-            </div>
-            <h2 className="text-2xl font-black text-white mb-6">신청부터 증빙까지, 올인원 공문서 자동화</h2>
-            
-            <div className="grid grid-cols-2 gap-5">
-              {/* 사전 신청 자동화 버튼 */}
-              <div 
-                className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl p-6 transition-colors cursor-pointer group"
-                onClick={() => alert('✅ 사전 참가 신청서 및 증빙 서류(사업자등록증, 재직증명서)가 지자체 담당자에게 자동 발송되었습니다.')}
-              >
-                <div className="flex justify-between items-start mb-4">
-                  <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
-                    📝
-                  </div>
-                  <span className="text-blue-300 text-sm font-bold group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">원클릭 발송 →</span>
-                </div>
-                <h3 className="text-lg font-black text-white mb-2">사전 참가 신청 (자동화)</h3>
-                <p className="text-sm text-slate-300 leading-relaxed">
-                  직원 예약 즉시 B2B 연동된 사업자등록증 및 재직증명서 취합 완료. 해당 지자체 양식에 맞춘 <strong>'참가 신청서'를 원클릭 전송</strong>합니다.
-                </p>
-              </div>
-
-              {/* 사후 증빙 자동화 버튼 */}
-              <div className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl p-6 transition-colors cursor-pointer group">
-                <Link href="/dashboard/subsidy-report" className="block w-full h-full">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
-                      🖨️
-                    </div>
-                    <span className="text-emerald-300 text-sm font-bold group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">결과보고서 출력 →</span>
-                  </div>
-                  <h3 className="text-lg font-black text-white mb-2">사후 증빙 결과보고서 (자동화)</h3>
-                  <p className="text-sm text-slate-300 leading-relaxed">
-                    결제 영수증 내역과 현장 Wi-Fi 접속 로그 결합. 지자체가 요구하는 <strong>'결과 보고서 양식(PDF)'으로 100% 렌더링</strong>합니다.
-                  </p>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 요약 카드 4개 */}
-        <div className="grid grid-cols-4 gap-4 mb-8">
-          {[
-            { label: '총 예약',     value: `${bookings.length}건`,  sub: '진행중인 예약 포함',  color: 'text-blue-600' },
-            { label: '참여 직원',   value: `${totalGuests}명`,       sub: '누적 참여',     color: 'text-emerald-600' },
-            { label: '예산 사용률', value: `${budgetPct}%`,          sub: `${budgetUsed.toLocaleString()}원 사용`, color: 'text-amber-600' },
-            { label: '절감 지원금', value: `${subsidyUsage.filter(s=>!s.isDuplicate).reduce((s, u) => s + u.amount, 0).toLocaleString()}원`, sub: '지자체 지원금 합계', color: 'text-purple-600' },
-          ].map((s) => (
-            <div key={s.label} className="bg-white border border-[#E2E8F0] rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
-              <div className={`absolute top-0 right-0 w-16 h-16 bg-gradient-to-br ${s.color.replace('text-', 'from-')}/5 to-transparent rounded-bl-full group-hover:scale-110 transition-transform`} />
-              <p className="text-xs font-bold text-[#94A3B8] mb-2">{s.label}</p>
-              <p className={`text-3xl font-black ${s.color} tracking-tight mb-1`}>{s.value}</p>
-              <p className="text-xs text-[#475569]">{s.sub}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* 예산 게이지 */}
-        <div className="bg-white border border-[#E2E8F0] rounded-2xl p-6 mb-6 shadow-sm">
-          <div className="flex justify-between items-end mb-3">
-            <div>
-              <h3 className="font-black text-slate-800 flex items-center gap-2">
-                <span>💳</span> 연간 워케이션 예산 사용 현황
-              </h3>
-            </div>
-            <div className="text-right">
-              <span className="text-lg font-black text-slate-800">{budgetUsed.toLocaleString()}원</span>
-              <span className="text-sm font-medium text-slate-400 mx-1">/</span>
-              <span className="text-sm font-medium text-slate-500">{budgetTotal.toLocaleString()}원</span>
-            </div>
-          </div>
-          <div className="h-4 bg-slate-100 rounded-full overflow-hidden shadow-inner">
-            <div className="h-full bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full transition-all" style={{ width: `${budgetPct}%` }} />
-          </div>
-          <div className="flex justify-between mt-2 text-xs font-bold text-slate-500">
-            <span className="text-blue-600">{budgetPct}% 사용 완료</span>
-            <span>잔여 예산 {(budgetTotal - budgetUsed).toLocaleString()}원</span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-6 mb-8">
-          {/* 지원금 수혜 현황 */}
-          <div className="bg-white border border-[#E2E8F0] rounded-2xl overflow-hidden shadow-sm flex-1">
-            <div className="flex items-center justify-between px-6 py-5 border-b border-[#E2E8F0] bg-slate-50/50">
-              <div className="flex items-center gap-2">
-                <span className="text-lg">💰</span>
-                <h2 className="font-black text-slate-800">지자체 지원금 수혜 내역</h2>
-                <span className="text-[10px] bg-amber-500/10 text-amber-600 px-2 py-0.5 rounded-md font-bold">1인 1회 제한</span>
-              </div>
-            </div>
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-xs text-slate-400 border-b border-slate-100 bg-slate-50/30">
-                  <th className="text-left px-6 py-3 font-semibold">임직원</th>
-                  <th className="text-left px-6 py-3 font-semibold">지원 내역</th>
-                  <th className="text-right px-6 py-3 font-semibold">환급액</th>
-                </tr>
-              </thead>
-              <tbody>
-                {subsidyUsage.map((u, i) => (
-                  <tr key={i} className={`border-b border-slate-50 transition-colors ${u.isDuplicate ? 'bg-red-50/30' : 'hover:bg-slate-50/50'}`}>
-                    <td className="px-6 py-4">
-                      <div className="font-bold text-slate-700">{u.userName}</div>
-                      <div className="text-[11px] text-slate-400 mt-0.5">{u.date}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-xs font-semibold text-slate-600">{u.subsidyName}</div>
-                      <div className="text-[11px] text-slate-400 mt-0.5">📍 {u.region}</div>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      {u.isDuplicate ? (
-                        <div className="inline-flex items-center gap-1 bg-red-100 text-red-600 text-[10px] font-bold px-2 py-1 rounded-md">
-                          <span>⚠️ 중복 수급 불가</span>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-end gap-1.5">
-                          <div className="font-black text-emerald-500">+{u.amount.toLocaleString()}원</div>
-                          <Link href={`/dashboard/subsidy-report?user=${encodeURIComponent(u.userName)}&subsidy=${encodeURIComponent(u.subsidyName)}&region=${encodeURIComponent(u.region)}&amount=${u.amount}`}>
-                            <button className="text-[10px] bg-slate-800 hover:bg-slate-700 text-white font-bold px-2 py-1 rounded shadow-sm transition-colors flex items-center gap-1">
-                              <span>🖨️</span> 증빙 서류 출력
-                            </button>
-                          </Link>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* 최근 예약 내역 */}
-          <div className="bg-white border border-[#E2E8F0] rounded-2xl overflow-hidden shadow-sm flex-1">
-            <div className="flex items-center justify-between px-6 py-5 border-b border-[#E2E8F0] bg-slate-50/50">
-              <div className="flex items-center gap-2">
-                <span className="text-lg">📅</span>
-                <h2 className="font-black text-slate-800">최근 워케이션 예약 승인</h2>
-              </div>
-            </div>
-            <div className="divide-y divide-slate-100">
-              {bookings.map((b, i) => (
-                <div key={i} className="px-6 py-4 flex items-center justify-between hover:bg-slate-50/50 transition-colors">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-bold text-slate-800 text-sm">{b.userName}</span>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
-                        b.status === 'confirmed' ? 'bg-blue-100 text-blue-600' : 'bg-amber-100 text-amber-600'
-                      }`}>
-                        {b.status === 'confirmed' ? '예약 확정' : '대기중'}
-                      </span>
-                      {b.payment_type === 'personal' ? (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-600">개인 사비</span>
-                      ) : (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-600">회사 예산</span>
-                      )}
-                    </div>
-                    <div className="text-xs text-slate-600 font-medium">{b.accommodations.name}</div>
-                    <div className="text-[11px] text-slate-400 mt-0.5">{b.start_date} ~ {b.end_date} ({b.guests}명)</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-black text-slate-700 text-sm">{b.total_price.toLocaleString()}원</div>
-                    <div className="text-[10px] text-slate-400 mt-0.5">
-                      {b.payment_type === 'personal' ? '직접 결제' : '회사 예산 차감'}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-      <Footer />
-    </div>
-  )
+  return <div className="min-h-screen bg-[#F8FAFC]">
+    <Header role="hr" />
+    <main className="max-w-5xl mx-auto px-6 py-8">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><h1 className="text-2xl font-black">🏢 {data?.company || '회사'} HR 대시보드</h1><p className="mt-1 text-sm text-slate-600">소속 직원의 실제 가입·예약·업무 리포트 현황입니다.</p></div><div className="flex gap-3"><button onClick={load} disabled={loading} className="rounded-xl border bg-white px-4 py-2.5 text-sm font-bold disabled:opacity-50">{loading ? '불러오는 중…' : '새로고침'}</button><Link href="/members" className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white">직원 가입 승인</Link></div></div>
+      {error && <div role="alert" className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">{error}</div>}
+      <section className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">{cards.map(([label, value, sub, color]) => <div key={label} className="rounded-2xl border bg-white p-5 shadow-sm"><p className="mb-2 text-xs font-bold text-slate-400">{label}</p><p className={`text-2xl font-black ${color}`}>{loading ? '—' : value}</p><p className="mt-1 text-xs text-slate-500">{sub}</p></div>)}</section>
+      <section className="mb-8 grid gap-6 lg:grid-cols-2">
+        <div className="overflow-hidden rounded-2xl border bg-white shadow-sm"><h2 className="border-b px-6 py-5 font-black text-slate-800">최근 워케이션 예약</h2>{loading ? <p className="p-8 text-center text-sm text-slate-500">예약 정보를 불러오는 중입니다…</p> : !bookings.length ? <p className="p-8 text-center text-sm text-slate-500">등록된 예약이 없습니다.</p> : <ul className="divide-y">{bookings.slice(0, 6).map((booking) => <li key={booking.id} className="flex items-start justify-between gap-4 px-6 py-4"><div><p className="text-sm font-bold">{nameOf(booking.member)}</p><p className="mt-1 text-xs text-slate-600">{booking.accommodation?.name || '숙소 정보 없음'}</p><p className="mt-1 text-[11px] text-slate-400">{booking.start_date} ~ {booking.end_date} · {booking.guests}명</p></div><div className="text-right"><span className={`rounded-md px-2 py-1 text-[10px] font-bold ${booking.status === 'confirmed' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>{booking.status === 'confirmed' ? '예약 확정' : booking.status}</span><p className="mt-2 text-sm font-black">{won(booking.total_price || 0)}</p></div></li>)}</ul>}</div>
+        <div className="overflow-hidden rounded-2xl border bg-white shadow-sm"><div className="flex items-center justify-between border-b px-6 py-5"><h2 className="font-black text-slate-800">직원 업무 리포트</h2><span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700">{reports.length}건</span></div>{loading ? <p className="p-8 text-center text-sm text-slate-500">업무 리포트를 불러오는 중입니다…</p> : !reports.length ? <p className="p-8 text-center text-sm text-slate-500">제출된 업무 리포트가 없습니다.</p> : <ul className="divide-y">{reports.slice(0, 4).map((report) => <li key={report.id} className="px-6 py-4"><div className="flex justify-between gap-3"><p className="text-sm font-bold">{nameOf(report.member)}</p><span className="text-[11px] text-slate-400">개발 집중 {report.github_minutes || 0}분</span></div><p className="mt-2 line-clamp-3 whitespace-pre-wrap text-xs leading-5 text-slate-600">{report.report_text}</p></li>)}</ul>}</div>
+      </section>
+      <section className="rounded-2xl border bg-white p-6 shadow-sm"><h2 className="font-black text-slate-800">직원 가입 상태</h2>{loading ? <p className="py-6 text-center text-sm text-slate-500">직원 정보를 불러오는 중입니다…</p> : !members.length ? <p className="py-6 text-center text-sm text-slate-500">아직 등록된 직원이 없습니다. 직원 가입 신청을 승인해 주세요.</p> : <ul className="mt-4 grid gap-3 sm:grid-cols-2">{members.map((member) => <li key={member.id} className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-4 py-3"><div className="min-w-0"><p className="truncate text-sm font-bold">{nameOf(member)}</p><p className="truncate text-xs text-slate-500">{member.email}</p></div><span className={`shrink-0 rounded-md px-2 py-1 text-[10px] font-bold ${member.status === 'approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{member.status === 'approved' ? '승인됨' : '승인 대기'}</span></li>)}</ul>}</section>
+    </main>
+    <Footer />
+  </div>
 }
