@@ -4,9 +4,10 @@ import Link from 'next/link'
 import Header from '@/components/ui/Header'
 import {memberRequest} from '@/lib/membership-client'
 import type {Membership} from '@/lib/server-membership'
+type MembersResponse = { company: { id: string; name: string }; members: Membership[] }
 export default function MembersPage(){
  const [members,setMembers]=useState<Membership[]>([]),[company,setCompany]=useState(''),[loading,setLoading]=useState(true),[busy,setBusy]=useState(''),[error,setError]=useState(''),[notice,setNotice]=useState(''),[filter,setFilter]=useState('pending'),[search,setSearch]=useState('')
- const load=useCallback(async()=>{setLoading(true);setError('');try{const r=await memberRequest('/api/hr/members');setMembers(r.members);setCompany(r.company)}catch(e){setMembers([]);setCompany('');setError((e as Error).message)}finally{setLoading(false)}},[])
+ const load=useCallback(async()=>{setLoading(true);setError('');try{const r:MembersResponse=await memberRequest('/api/hr/members');if(typeof r?.company?.name!=='string'||!Array.isArray(r.members))throw new Error('회사 및 직원 정보를 불러오지 못했습니다. 다시 시도해 주세요.');setMembers(r.members);setCompany(r.company.name)}catch(e){setMembers([]);setCompany('');setError(e instanceof Error?e.message:'직원 신청 목록을 불러오지 못했습니다.')}finally{setLoading(false)}},[])
  useEffect(()=>{void load()},[load])
  async function approve(m:Membership){setBusy(m.id);setError('');setNotice('');try{await memberRequest('/api/hr/members',{method:'POST',body:JSON.stringify({userId:m.id})});setMembers(prev=>prev.map(v=>v.id===m.id?{...v,status:'approved'}:v));setNotice(`${m.name||m.email}님의 가입을 승인했습니다.`)}catch(e){setError((e as Error).message)}finally{setBusy('')}}
  const visible=members.filter(m=>(filter==='all'||m.status===filter)&&`${m.name||''} ${m.email||''}`.toLowerCase().includes(search.toLowerCase()))
