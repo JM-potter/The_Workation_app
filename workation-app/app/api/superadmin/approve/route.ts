@@ -10,7 +10,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing userId' }, { status: 400 })
     }
 
-    if (typeof userId !== 'string' || !/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(userId)) {
+    if (typeof userId !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId)) {
       return NextResponse.json({ error: '가입 요청 정보를 확인해 주세요.' }, { status: 400 })
     }
     const supabase = membershipAdmin()

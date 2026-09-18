@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     const db = membershipAdmin(), hr = await authenticatedMember(request, db); const company = requireApprovedHr(hr)
     let body: { userId?: unknown }
     try { body = await request.json() } catch { throw new MembershipError('올바른 승인 요청이 아닙니다.',400) }
-    if (!body || typeof body.userId !== 'string' || !/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(body.userId)) throw new MembershipError('직원 정보를 확인해 주세요.',400)
+    if (!body || typeof body.userId !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.userId)) throw new MembershipError('직원 정보를 확인해 주세요.',400)
     const { data: employee, error } = await db.from('users').select('id,name,email,role,status,company_id,company_name').eq('id',body.userId).maybeSingle()
     if (error) throw new MembershipError('직원 정보를 확인하지 못했습니다.')
     if (!employee || !canApproveEmployee(hr,employee)) throw new MembershipError('소속 회사의 직원 신청만 승인할 수 있습니다.',403)
