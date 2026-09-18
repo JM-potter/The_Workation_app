@@ -61,6 +61,7 @@ export default function MyPage() {
   const [uploading, setUploading] = useState<string | null>(null)
   const [openId, setOpenId]       = useState<string | null>(null)
   const [showOnboarding, setShowOnboarding] = useState(false)
+  const [showStartModal, setShowStartModal] = useState(false)
 
   useEffect(() => {
     if (!localStorage.getItem('wk-onboarded')) setShowOnboarding(true)
@@ -133,17 +134,76 @@ export default function MyPage() {
     <div className="min-h-screen bg-[#F8FAFC]">
       <Header />
 
+      {/* Start Workation Modal */}
+      {showStartModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden text-slate-800">
+            <button 
+              onClick={() => setShowStartModal(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-2xl font-bold"
+            >
+              ×
+            </button>
+            <h2 className="text-2xl font-black mb-2 text-center text-slate-900">어디로 떠나시나요?</h2>
+            <p className="text-sm text-center text-slate-500 mb-8">근무할 지역의 목적을 선택해주세요.</p>
+            
+            <div className="space-y-4">
+              {/* Domestic Option */}
+              <Link href="/accommodations" onClick={() => setShowStartModal(false)} className="block">
+                <div className="border border-slate-200 rounded-2xl p-5 hover:border-blue-500 hover:bg-blue-50 transition-all group cursor-pointer">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">🇰🇷</span>
+                      <h3 className="font-bold text-lg text-slate-800 group-hover:text-blue-700">국내 워케이션</h3>
+                    </div>
+                    <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded">지자체 보조금 연동</span>
+                  </div>
+                  <p className="text-xs text-slate-500">자동화된 지자체 지원금 신청 및 정산 프로세스가 100% 돌아가는 핵심 공간입니다.</p>
+                </div>
+              </Link>
+              
+              {/* Global Lab Option */}
+              <Link href="/dashboard/global-lab" onClick={() => setShowStartModal(false)} className="block">
+                <div className="border border-slate-200 rounded-2xl p-5 hover:border-purple-500 hover:bg-purple-50 transition-all group cursor-pointer relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-16 h-16 bg-purple-500/10 rounded-full blur-xl transform translate-x-1/2 -translate-y-1/2"></div>
+                  <div className="flex items-center justify-between mb-2 relative z-10">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">✈️</span>
+                      <h3 className="font-bold text-lg text-slate-800 group-hover:text-purple-700">글로벌 랩 (Lab)</h3>
+                    </div>
+                    <span className="bg-purple-100 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">Premium Beta</span>
+                  </div>
+                  <p className="text-xs text-slate-500 relative z-10 mb-3">글로벌 워케이션을 위한 프리미엄 익스페디션 라운지입니다.</p>
+                  <div className="bg-slate-100 rounded-lg p-2 text-center relative z-10 border border-slate-200 border-dashed">
+                    <span className="text-xs font-semibold text-slate-600">※ 현재 도쿄(Tokyo) 지역 테스트를 한정 지원합니다.</span>
+                  </div>
+                </div>
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 히어로 */}
       <div className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
         <div className="max-w-3xl mx-auto px-6 py-12">
-          <div className="flex items-center gap-5 mb-8">
-            <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center text-2xl font-black">
-              {userName ? userName[0] : '?'}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8">
+            <div className="flex items-center gap-5">
+              <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center text-2xl font-black">
+                {userName ? userName[0] : '?'}
+              </div>
+              <div>
+                <div className="text-xl font-black">{userName || '이름 없음'}</div>
+                <div className="text-blue-200 text-sm mt-0.5">{email}</div>
+              </div>
             </div>
-            <div>
-              <div className="text-xl font-black">{userName || '이름 없음'}</div>
-              <div className="text-blue-200 text-sm mt-0.5">{email}</div>
-            </div>
+            
+            <button 
+              onClick={() => setShowStartModal(true)}
+              className="bg-white text-blue-600 hover:bg-blue-50 px-6 py-3 rounded-xl font-black text-sm shadow-lg transition-transform hover:scale-105 flex items-center justify-center gap-2"
+            >
+              <span>+</span> 워케이션 시작하기
+            </button>
           </div>
 
           {/* 스탯 */}

@@ -25,7 +25,65 @@ export default function MyWorkationPage() {
   const [isCheckedIn, setIsCheckedIn] = useState(false)
   const [checkInTime, setCheckInTime] = useState<string | null>(null)
   const [checkOutTime, setCheckOutTime] = useState<string | null>(null)
-  
+  const [workDuration, setWorkDuration] = useState(0)
+  const [isOffMode, setIsOffMode] = useState(false)
+  const [offModeTime, setOffModeTime] = useState<string | null>(null)
+  const [isIdle, setIsIdle] = useState(false)
+
+  // 🖱️ 자리비움(AFK) 감지 로직 (5분)
+  useEffect(() => {
+    let idleTimer: NodeJS.Timeout;
+    
+    const resetIdleTimer = () => {
+      if (isIdle) setIsIdle(false); // 자리비움 상태였다가 복귀하면 해제
+      clearTimeout(idleTimer);
+      // 5분(300000ms) 동안 아무 입력이 없으면 자리비움 처리
+      idleTimer = setTimeout(() => setIsIdle(true), 300000);
+    };
+
+    if (isCheckedIn && !isOffMode) {
+      window.addEventListener('mousemove', resetIdleTimer);
+      window.addEventListener('keydown', resetIdleTimer);
+      window.addEventListener('scroll', resetIdleTimer);
+      window.addEventListener('click', resetIdleTimer);
+      resetIdleTimer();
+    }
+
+    return () => {
+      clearTimeout(idleTimer);
+      window.removeEventListener('mousemove', resetIdleTimer);
+      window.removeEventListener('keydown', resetIdleTimer);
+      window.removeEventListener('scroll', resetIdleTimer);
+      window.removeEventListener('click', resetIdleTimer);
+    };
+  }, [isCheckedIn, isOffMode, isIdle]);
+
+  // ⏱️ 실시간 타이머 로직 (자리비움(Idle) 상태면 카운트 일시정지)
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isCheckedIn && !isOffMode && !isIdle) {
+      timer = setInterval(() => setWorkDuration(prev => prev + 1), 1000);
+    }
+    return () => clearInterval(timer);
+  }, [isCheckedIn, isOffMode, isIdle]);
+
+  const formatTimer = (totalSeconds: number) => {
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
+  const handleCheckIn = () => {
+    setIsCheckedIn(true);
+    setCheckOutTime(null);
+    if (!checkInTime) setCheckInTime(new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }));
+  };
+
+  const handleCheckOut = () => {
+    setIsCheckedIn(false);
+    setCheckOutTime(new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }));
+  };
   // 증빙 업로드 상태
   const [proofs, setProofs] = useState<ProofDoc[]>([])
   const [uploading, setUploading] = useState(false)
@@ -56,8 +114,6 @@ export default function MyWorkationPage() {
   
   // 🚀 스프린트 퀘스트 (신규 기능)
   const [sprintQuests, setSprintQuests] = useState<{ id: number, text: string, completed: boolean, link: string }[]>([])
-  const [isOffMode, setIsOffMode] = useState(false)
-  const [offModeTime, setOffModeTime] = useState<string | null>(null)
 
   const fetchNotionData = async (token: string, isManualRefresh = false) => {
     try {
@@ -225,9 +281,10 @@ export default function MyWorkationPage() {
         if (!res.ok) throw new Error('GitHub 계정을 찾을 수 없거나 데이터를 불러올 수 없습니다.');
         const data = await res.json();
         
-        // 오늘 날짜의 모든 이벤트 시간순 정렬
-        const today = new Date().toISOString().split('T')[0];
-        const validEvents = data.filter((e: any) => e.created_at.startsWith(today))
+        // 최근 24시간 이내의 이벤트만 필터링 (UTC 시간대 문제 방지)
+        const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const validEvents = data
+          .filter((e: any) => new Date(e.created_at) >= oneDayAgo)
           .sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
 
         let usageMinutes = 0;
@@ -383,9 +440,24 @@ export default function MyWorkationPage() {
     const time = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })
     setOffModeTime(time)
     setIsOffMode(true)
+    setIsCheckedIn(false) // Off 모드 전환 시 자동 퇴근(타이머 정지)
     
     // 시뮬레이션: HR팀(슬랙)으로 알림 전송
     alert(`[HR 알림 발송 완료] 🔔\n\n"${userName}님이 금일 목표 과업 ${sprintQuests.length}개를 100% 달성하여 Off 모드로 전환되었습니다. (달성 시간: ${time}, 성과 달성률 100%)"`)
+  }
+
+  // 🚀 신규 계획(퀘스트) 추가 핸들러
+  const [newQuestText, setNewQuestText] = useState('');
+  const handleAddQuest = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newQuestText.trim()) return;
+    const newQuest = { id: Date.now(), text: newQuestText, completed: false, link: '' };
+    const updatedQuests = [...sprintQuests, newQuest];
+    setSprintQuests(updatedQuests);
+    
+    // 로컬스토리지 저장 동기화
+    localStorage.setItem('workation_goals', JSON.stringify(updatedQuests.map(q => q.text)));
+    setNewQuestText('');
   }
 
   // 업무 사진(증빙) 업로드
@@ -436,6 +508,15 @@ export default function MyWorkationPage() {
     return h > 0 ? `${h}시간 ${m}분` : `${m}분`
   }
 
+  const slackMins = tools.find(t => t.id === 'slack')?.usageMinutes || 0;
+  const githubMins = tools.find(t => t.id === 'github')?.usageMinutes || 0;
+  const notionMins = tools.find(t => t.id === 'notion')?.usageMinutes || 0;
+  
+  const deepWorkMins = githubMins + notionMins;
+  const collabMins = slackMins;
+  const totalToolMins = deepWorkMins + collabMins;
+  const deepWorkRatio = totalToolMins > 0 ? Math.round((deepWorkMins / totalToolMins) * 100) : 0;
+
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       <Header />
@@ -477,11 +558,54 @@ export default function MyWorkationPage() {
           </div>
         </div>
 
+        {/* ⏱️ 출퇴근 및 업무 타이머 */}
+        <div className="bg-white rounded-[32px] p-8 mb-6 shadow-[0_10px_40px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div>
+            <h2 className="font-bold text-[20px] text-[#0F172A] mb-1 flex flex-wrap items-center gap-2">
+              <span className="text-2xl">⏳</span> 실시간 업무 타이머
+              {isIdle && isCheckedIn && (
+                <span className="ml-2 text-[11px] bg-red-100 text-red-600 px-2.5 py-1 rounded-full font-bold animate-pulse border border-red-200 shadow-sm">
+                  ⚠️ 자리비움 감지됨 (일시정지)
+                </span>
+              )}
+            </h2>
+            <p className="text-sm text-slate-500">
+              {checkInTime ? `출근 시간: ${checkInTime}` : '아직 출근하지 않았습니다.'}
+              {checkOutTime && ` | 퇴근 시간: ${checkOutTime}`}
+            </p>
+          </div>
+          
+          <div className="flex items-center gap-6">
+            <div className={`text-4xl font-black tracking-tighter tabular-nums transition-colors ${
+              isIdle && isCheckedIn ? 'text-red-500' : 'text-slate-800'
+            }`}>
+              {formatTimer(workDuration)}
+            </div>
+            <div className="flex gap-2">
+              {!isCheckedIn ? (
+                <button 
+                  onClick={handleCheckIn}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-all active:scale-95"
+                >
+                  출근하기 (Timer Start)
+                </button>
+              ) : (
+                <button 
+                  onClick={handleCheckOut}
+                  className="bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-all active:scale-95"
+                >
+                  퇴근하기 (Timer Stop)
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
         {/* 🚀 1. 목표 기반 조기 퇴근 시스템 [Sprint & Off 모드] */}
         <div className={`rounded-[32px] p-8 mb-6 shadow-[0_10px_40px_rgb(0,0,0,0.04)] transition-all duration-700 ${
-          isOffMode ? 'bg-gradient-to-br from-teal-50 to-emerald-100 border-2 border-emerald-200' : 'bg-white'
+          isOffMode ? 'bg-gradient-to-br from-teal-50 to-emerald-100 border-2 border-emerald-200' : 'bg-white border border-slate-100'
         }`}>
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
             <h2 className="font-bold text-[20px] text-[#0F172A] flex items-center gap-2">
               <span className="text-2xl">{isOffMode ? '🌴' : '🎯'}</span> 
               {isOffMode ? '휴식(Off) 모드 활성화 됨' : '오늘의 데일리 퀘스트 (목표 달성 시 퇴근)'}
@@ -494,6 +618,25 @@ export default function MyWorkationPage() {
               </span>
             </div>
           </div>
+
+          {!isOffMode && (
+            <form onSubmit={handleAddQuest} className="flex gap-2 mb-6">
+              <input 
+                type="text"
+                value={newQuestText}
+                onChange={e => setNewQuestText(e.target.value)}
+                placeholder="새로운 업무 계획(퀘스트)을 입력하세요"
+                className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button 
+                type="submit"
+                disabled={!newQuestText.trim()}
+                className="bg-slate-800 text-white font-bold px-5 py-3 rounded-xl hover:bg-slate-900 disabled:opacity-50 transition-colors"
+              >
+                추가
+              </button>
+            </form>
+          )}
 
           <div className="space-y-4 mb-8">
             {sprintQuests.map((quest) => (
@@ -637,6 +780,50 @@ export default function MyWorkationPage() {
           <p className="text-[14px] text-[#8B95A1] mb-6">
             사내 메시지 내용이나 소스 코드는 <strong className="text-[#F04452]">절대 수집되지 않으며</strong>, 오직 활동 시간 정보만 안전하게 측정합니다.
           </p>
+          
+          {/* 🌟 딥워크(Deep Work) 대시보드 */}
+          <div className="mb-8 p-6 bg-slate-50 border border-slate-100 rounded-2xl flex flex-col md:flex-row items-center gap-8">
+            <div className="flex-1 w-full">
+              <div className="flex justify-between items-end mb-2">
+                <div>
+                  <h3 className="text-[#333D4B] font-bold text-sm">오늘의 업무 몰입도 (Deep Work Ratio)</h3>
+                  <p className="text-[11px] text-[#8B95A1] mt-0.5">개발/기획 집중시간 vs 협업/소통 시간</p>
+                </div>
+                <div className="text-right">
+                  <span className="text-3xl font-black text-blue-600">{deepWorkRatio}%</span>
+                </div>
+              </div>
+              <div className="h-4 w-full bg-slate-200 rounded-full overflow-hidden flex">
+                <div 
+                  style={{ width: `${deepWorkRatio}%` }} 
+                  className="bg-gradient-to-r from-blue-500 to-indigo-500 h-full transition-all duration-1000 ease-out"
+                />
+                <div 
+                  style={{ width: `${totalToolMins > 0 ? 100 - deepWorkRatio : 0}%` }} 
+                  className="bg-emerald-400 h-full transition-all duration-1000 ease-out"
+                />
+              </div>
+              <div className="flex justify-between mt-3 text-xs font-semibold">
+                <div className="flex items-center gap-1.5 text-indigo-700">
+                  <span className="w-2 h-2 rounded-full bg-indigo-500"/> 집중 (GitHub, Notion) {formatMinutes(deepWorkMins)}
+                </div>
+                <div className="flex items-center gap-1.5 text-emerald-700">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400"/> 소통 (Slack) {formatMinutes(collabMins)}
+                </div>
+              </div>
+            </div>
+            
+            {/* 요약 텍스트 */}
+            <div className="md:w-48 p-4 bg-white rounded-xl shadow-sm border border-slate-100 shrink-0 text-center">
+              <div className="text-xs text-slate-500 font-bold mb-1">총 측정된 API 활동 시간</div>
+              <div className="text-xl font-black text-slate-800">{formatMinutes(totalToolMins)}</div>
+              {deepWorkRatio >= 70 && totalToolMins > 60 && (
+                <div className="mt-2 text-[10px] bg-blue-50 text-blue-600 px-2 py-1 rounded-md font-bold">
+                  🔥 놀라운 몰입력을 보여주고 있어요!
+                </div>
+              )}
+            </div>
+          </div>
           
           <div className="grid gap-4 mb-6">
             {tools.map(tool => (
