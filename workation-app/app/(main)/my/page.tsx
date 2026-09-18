@@ -133,7 +133,6 @@ export default function MyPage() {
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       <Header />
-<<<<<<< HEAD
 
       {/* Start Workation Modal */}
       {showStartModal && (
@@ -185,8 +184,6 @@ export default function MyPage() {
         </div>
       )}
 
-=======
->>>>>>> ce7c248dd746a689d527da37e1de9c1feb63f41a
       {/* 히어로 */}
       <div className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
         <div className="max-w-3xl mx-auto px-6 py-12">
