@@ -1,0 +1,15 @@
+.workation-report{background:#fff;color:#20373b;padding:40px;max-width:850px;margin:auto;font-family:Arial,'Malgun Gothic',sans-serif;line-height:1.7;overflow-wrap:anywhere}
+.report-heading{display:flex;align-items:center;justify-content:space-between;gap:20px;border-bottom:3px solid #056f7c;padding-bottom:20px}
+.report-heading img{width:140px;height:auto}.report-heading span{font-size:10px;letter-spacing:1.4px;color:#577174}
+.workation-report h2{font-size:27px;margin:28px 0 6px;font-weight:700;letter-spacing:-1px}.report-state{font-size:12px;color:#056f7c;margin-bottom:28px}
+.report-info{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #bbcaca}.report-info>div{display:flex;gap:12px;border-bottom:1px solid #dde5e5;padding:12px 0;font-size:13px}.report-info dt{width:78px;flex-shrink:0;color:#5b7174}.report-info dd{margin:0}
+.workation-report h3{font-size:16px;margin:30px 0 14px;color:#056c78;font-weight:700}.report-summary{display:flex;gap:32px;padding:20px;background:#f2f8f7;flex-wrap:wrap}.report-summary span{display:block;font-size:12px;color:#617679}.report-summary strong{display:block;font-size:19px;margin-top:4px}
+.report-goal{border-top:1px solid #bbcaca;padding:18px 0}.report-goal h4{font-size:15px;font-weight:700;margin-bottom:12px}.report-goal dl>div{display:grid;grid-template-columns:140px 1fr;gap:12px;padding:6px 0;font-size:13px}.report-goal dt{color:#5b7174}.report-goal dd{margin:0;white-space:pre-wrap}.report-goal a{color:#056c78;text-decoration:underline}.report-feedback{white-space:pre-wrap;font-size:13px}.workation-report footer{margin-top:40px;padding-top:16px;border-top:1px solid #bbcaca;font-size:10px;color:#617679}
+@media(max-width:600px){.workation-report{padding:20px}.report-heading{flex-wrap:wrap}.report-info{grid-template-columns:1fr}.workation-report h2{font-size:22px}.report-goal dl>div{grid-template-columns:1fr;gap:0}}
+@media print{@page{size:A4;margin:16mm}body{background:white!important;color:#20373b!important}body:has(.workation-report) *{visibility:hidden}body:has(.workation-report) .workation-report,body:has(.workation-report) .workation-report *{visibility:visible}.workation-report{position:absolute;left:0;top:0;width:100%;max-width:none;padding:0;font-size:11pt;print-color-adjust:exact;-webkit-print-color-adjust:exact}.report-info{grid-template-columns:1fr 1fr}.report-goal dl>div{grid-template-columns:140px 1fr}.workation-report h3,.report-goal h4{break-after:avoid}.report-goal dl>div{break-inside:avoid}.report-heading{break-inside:avoid} .report-summary{break-inside:avoid}}
+
+@media print {
+ body *:not(:has(.workation-report)):not(.workation-report):not(.workation-report *) { display:none!important; }
+ body *:has(.workation-report) { display:block!important; margin:0!important; padding:0!important; max-width:none!important; border:0!important; background:white!important; }
+ .workation-report { position:static; }
+}

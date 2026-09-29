@@ -65,6 +65,12 @@ export default function EmployeeSelectPage() {
           </p>
         </div>
 
+        <Link href="/workation-plans" className="block w-full max-w-3xl mx-auto mb-6 rounded-2xl bg-blue-600 text-white p-6 hover:bg-blue-700 transition-colors">
+          <span className="text-xs font-semibold">예약 없이 시작하는 워케이션</span>
+          <h2 className="text-xl font-bold mt-2">내 워케이션 · 목표와 업무 관리</h2>
+          <p className="mt-2 text-sm">일정과 목표를 만들고, 회사 승인부터 업무 기록·결과 제출까지 진행하세요.</p>
+          <span className="block mt-4 font-semibold">워케이션 시작하기 →</span>
+        </Link>
         {/* 2선택 카드 카드 레이아웃 */}
         <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto w-full">
           {/* 카드 1: 숙소 예약 */}

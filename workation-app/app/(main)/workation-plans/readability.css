@@ -1,0 +1,27 @@
+.workation-ui{font-family:'Malgun Gothic','맑은 고딕',Arial,sans-serif;font-size:16px;line-height:1.65;color:#172c30;background:#f3f6f6}
+.workation-ui main{max-width:1200px;padding-top:32px}
+.workation-ui main h1{font-size:32px;letter-spacing:-1px}.workation-ui main h2{font-size:25px;letter-spacing:-.6px}
+.workation-ui main .text-sm{font-size:15px}.workation-ui main .text-xs{font-size:13px}
+.workation-ui main .text-slate-400,.workation-ui main .text-slate-500{color:#586b70}.workation-ui main .text-slate-600{color:#455b60}
+.workation-ui main input,.workation-ui main textarea,.workation-ui main select{font:inherit;color:#172c30;min-height:44px;border-color:#b5c7ca}
+.workation-ui main textarea::placeholder,.workation-ui main input::placeholder{color:#647a7e}
+.workation-ui main label,.workation-ui main legend{font-weight:600}
+.workation-ui main button{min-height:44px}.workation-ui main button:focus-visible{outline:3px solid #08ada5;outline-offset:3px}
+.workation-tabs{display:flex;flex-wrap:wrap;gap:8px;border-bottom:1px solid #dbe5e6;padding-bottom:16px;margin-bottom:24px}
+.workation-tabs button{padding:10px 18px;border-radius:8px;font-weight:600;color:#455b60;background:#f2f5f5}
+.workation-tabs button[aria-pressed=true]{color:#fff;background:#056f7c}.workation-tabs .report-link{margin-left:auto;font-size:14px;background:transparent;font-weight:400}
+.workation-goal{padding:24px;background:#f8fafa;border:1px solid #dce6e7;border-radius:14px}
+.workation-goal h3{font-size:13px;color:#056f7c;letter-spacing:.5px}.workation-goal .goal-title{font-size:21px;font-weight:700;line-height:1.5}
+.goal-criteria{font-size:14px;color:#455b60}.goal-criteria summary{cursor:pointer}.goal-criteria p{padding:10px 0}
+.workation-goal>div>div{gap:16px}.workation-goal textarea{background:white}
+.workation-ui main [role=status]{font-size:15px}
+.workation-ui main .workation-report{font-family:Arial,'Malgun Gothic',sans-serif}
+@media(max-width:640px){.workation-ui main{padding:20px 16px}.workation-ui main h1{font-size:27px}.workation-ui main h2{font-size:22px}.workation-goal{padding:16px}.workation-tabs .report-link{margin-left:0}.workation-ui header>div{flex-wrap:wrap;gap:12px}}
+
+.journey-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding:0 0 24px;margin:0 0 24px;border-bottom:1px solid #dbe5e6;list-style:none}
+.journey-steps li{display:flex;align-items:center;gap:8px;font-size:14px;color:#586b70;line-height:1.4}.journey-steps li>span{display:grid;place-items:center;flex-shrink:0;width:28px;height:28px;border-radius:50%;background:#edf2f3}.journey-steps .current{font-weight:700;color:#056f7c}.journey-steps .current>span{background:#056f7c;color:white}.journey-steps .done>span{background:#dff3f0;color:#056f7c}
+.form-section-title h3{font-size:18px;font-weight:700}.form-section-title p{font-size:14px;color:#455b60;font-weight:400;margin-top:4px}
+.workation-actions{position:sticky;bottom:0;z-index:10;display:flex;flex-wrap:wrap;gap:12px;align-items:center;background:#fff;padding:16px 0 8px;border-top:1px solid #dbe5e6}.workation-actions .secondary-action{border:1px solid #b5c7ca;border-radius:8px;padding:10px 16px;background:#fff;font-size:14px;font-weight:600}.action-help{width:100%;font-size:13px;color:#455b60;margin:0}
+.workation-ui main input:focus-visible,.workation-ui main select:focus-visible,.workation-ui main textarea:focus-visible{outline:2px solid #056f7c;outline-offset:2px}
+@media(max-width:640px){.journey-steps li{flex-direction:column;text-align:center;font-size:12px;gap:6px}.workation-actions>button{flex:1}.workation-actions{padding-bottom:12px}.workation-ui aside{max-height:220px;overflow:auto}}
+@media print{.journey-steps,.workation-actions{display:none}}
