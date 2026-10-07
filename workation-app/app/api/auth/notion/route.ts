@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { randomBytes } from 'node:crypto';
 
 export async function GET(request: Request) {
   const clientId = process.env.NOTION_CLIENT_ID;
@@ -11,5 +12,9 @@ export async function GET(request: Request) {
   // Notion OAuth Authorization URL
   const authUrl = `https://api.notion.com/v1/oauth/authorize?client_id=${clientId}&response_type=code&owner=user&redirect_uri=${encodeURIComponent(redirectUri)}`;
 
-  return NextResponse.redirect(authUrl);
+  const state=randomBytes(32).toString('hex');
+  const url=new URL(authUrl);url.searchParams.set('state',state);
+  const response=NextResponse.redirect(url);
+  response.cookies.set('legacy_notion_state',state,{httpOnly:true,secure:process.env.NODE_ENV==='production',sameSite:'lax',path:'/api/auth/notion',maxAge:600});
+  return response;
 }

@@ -224,6 +224,7 @@ export default function MyWorkationPage() {
 
     // 2. 팝업(callback 라우트)에서 보내는 비밀 메시지 수신 대기
     const messageListener = async (event: MessageEvent) => {
+      if (event.origin !== window.location.origin || typeof event.data?.token !== 'string') return;
       if (event.data?.type === 'NOTION_AUTH_SUCCESS') {
         const token = event.data.token;
         window.removeEventListener('message', messageListener);
@@ -250,6 +251,7 @@ export default function MyWorkationPage() {
     );
 
     const messageListener = async (event: MessageEvent) => {
+      if (event.origin !== window.location.origin || typeof event.data?.token !== 'string') return;
       if (event.data?.type === 'SLACK_AUTH_SUCCESS') {
         const token = event.data.token;
         window.removeEventListener('message', messageListener);

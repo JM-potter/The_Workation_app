@@ -6,6 +6,8 @@ export async function GET(request: NextRequest) {
     return personalCallback(request,{params:{provider:'slack',action:'callback'}})
   }
   const { searchParams } = new URL(request.url);
+  const pending=request.cookies.get('legacy_slack_state')?.value;
+  if(!pending || pending!==searchParams.get('state'))return new NextResponse('인증 요청이 만료됐습니다. 다시 연결해 주세요.',{status:400});
   const code = searchParams.get('code');
   const error = searchParams.get('error');
 
@@ -58,7 +60,7 @@ export async function GET(request: NextRequest) {
         <body>
           <script>
             // 부모 창으로 토큰 전달
-            window.opener.postMessage({ type: 'SLACK_AUTH_SUCCESS', token: '${accessToken}' }, '*');
+            window.opener.postMessage({ type: 'SLACK_AUTH_SUCCESS', token: ${JSON.stringify(accessToken).replace(/</g,'\\u003c')} }, ${JSON.stringify(new URL(redirectUri).origin)});
             // 팝업 닫기
             window.close();
           </script>
@@ -72,6 +74,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('Slack OAuth error:', error);
-    return new NextResponse(`Authentication failed: ${error.message}`, { status: 500 });
+    return new NextResponse('인증에 실패했습니다. 다시 연결해 주세요.', { status: 500 });
   }
 }

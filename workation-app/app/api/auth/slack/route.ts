@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { randomBytes } from 'node:crypto';
 
 export async function GET(request: Request) {
   const clientId = process.env.SLACK_CLIENT_ID;
@@ -11,5 +12,9 @@ export async function GET(request: Request) {
   // Slack OAuth Authorization URL (user_scope for search:read)
   const authUrl = `https://slack.com/oauth/v2/authorize?client_id=${clientId}&user_scope=search:read&redirect_uri=${encodeURIComponent(redirectUri)}`;
 
-  return NextResponse.redirect(authUrl);
+  const state=randomBytes(32).toString('hex');
+  const url=new URL(authUrl);url.searchParams.set('state',state);
+  const response=NextResponse.redirect(url);
+  response.cookies.set('legacy_slack_state',state,{httpOnly:true,secure:process.env.NODE_ENV==='production',sameSite:'lax',path:'/api/auth/slack',maxAge:600});
+  return response;
 }

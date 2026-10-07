@@ -50,28 +50,7 @@ ${githubEvents && githubEvents.length > 0 ? githubEvents.map((e: any, i: number)
     const text = response.text();
 
     return NextResponse.json({ report: text });
-  } catch (error: any) {
-    console.error('Gemini API Error:', error);
-    
-    let availableModels = '조회 실패';
-    try {
-      const modelsRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${process.env.GEMINI_API_KEY}`);
-      if (modelsRes.ok) {
-        const modelsData = await modelsRes.json();
-        if (modelsData.models) {
-          availableModels = modelsData.models.map((m: any) => m.name.replace('models/', '')).join(', ');
-        }
-      }
-    } catch (e) {
-      console.error('Failed to fetch models list', e);
-    }
-
-    return NextResponse.json(
-      { 
-        error: '보고서 생성 중 오류가 발생했습니다.', 
-        details: `${error.message}\n\n[현재 API 키로 사용 가능한 모델 목록]\n${availableModels}` 
-      },
-      { status: 500 }
-    );
+  } catch {
+    return NextResponse.json({error:'보고서 생성 중 오류가 발생했습니다.'},{status:502});
   }
 }
