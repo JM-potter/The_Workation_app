@@ -1,7 +1,10 @@
 import { MembershipError, type Membership } from './server-membership'
 
-export type Goal = { title: string; criteria: string; due: string; expectedMinutes: number; actualMinutes: number; progress: number; note: string; result: string; link: string }
-export type Plan = { id: string; company_id: string; user_id: string; employee_name: string; title: string; place: string; start_date: string; end_date: string; goals: Goal[]; status: 'draft' | 'pending' | 'revision' | 'approved' | 'submitted' | 'rework' | 'completed'; feedback: string; version: number; history: { at: string; action: string; actor: string; note: string }[] }
+export type Goal = {
+ evidence?: import('./personal-evidence').Evidence[];
+ personalTimer?: { seconds: number; sessions: number }; title: string; criteria: string; due: string; expectedMinutes: number; actualMinutes: number; progress: number; note: string; result: string; link: string }
+export type Plan = {
+ region?:string; id: string; company_id: string; user_id: string; employee_name: string; title: string; place: string; start_date: string; end_date: string; goals: Goal[]; status: 'draft' | 'pending' | 'revision' | 'approved' | 'submitted' | 'rework' | 'completed'; feedback: string; version: number; history: { at: string; action: string; actor: string; note: string }[] }
 export const statusLabels: Record<Plan['status'], string> = { draft: '작성 중', pending: '목표 검토 대기', revision: '목표 수정 요청', approved: '업무 진행 중', submitted: '결과 검토 대기', rework: '결과 보완 요청', completed: '검토 완료' }
 const fail = (message: string, status = 400): never => { throw new MembershipError(message, status) }
 export function requireParticipant(member: Membership) {

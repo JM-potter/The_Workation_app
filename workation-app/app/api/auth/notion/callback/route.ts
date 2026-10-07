@@ -1,6 +1,10 @@
-import { NextResponse } from 'next/server';
+import { GET as personalCallback } from '@/app/api/personal/tools/[provider]/[action]/route'
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+  if (request.cookies.has('personal_tool_notion_state') || new URL(request.url).searchParams.get('state')?.startsWith('pw_')) {
+    return personalCallback(request,{params:{provider:'notion',action:'callback'}})
+  }
   const { searchParams } = new URL(request.url);
   const code = searchParams.get('code');
   const error = searchParams.get('error');

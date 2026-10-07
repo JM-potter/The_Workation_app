@@ -53,7 +53,7 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-gradient-to-b from-[#0F172A]/65 via-[#0F172A]/55 to-[#0F172A]/70" />
         <div className="relative z-10 max-w-4xl mx-auto">
           <div className="inline-block bg-white/15 border border-white/30 text-white text-xs font-bold px-3 py-1 rounded-full mb-6">
-            기업 전용 워케이션 플랫폼
+            개인과 기업을 위한 워케이션 플랫폼
           </div>
           <h1 className="text-5xl font-black leading-tight mb-6 text-white">
             워케이션,<br />
@@ -64,14 +64,16 @@ export default function LandingPage() {
             숙소 검색부터 단체 예약, 예산 관리, 성과 보고까지.
             인사담당자를 위한 올인원 워케이션 솔루션.
           </p>
-          <div className="flex gap-4 justify-center">
+          <div className="flex flex-wrap gap-4 justify-center">
+            <Link href="/personal"><Button size="lg" className="!bg-[#056f7c] !text-white hover:!bg-[#045965]">개인용 무료 체험 →</Button></Link>
             <Link href="/register">
-              <Button size="lg">지금 시작하기 →</Button>
+              <Button variant="secondary" size="lg" className="!bg-white !text-[#056f7c]">기업용 시작하기</Button>
             </Link>
             <Link href="/accommodations">
               <Button variant="secondary" size="lg" className="!bg-white/15 !text-white !border-white/40 hover:!bg-white/25">숙소 둘러보기</Button>
             </Link>
           </div>
+          <p className="mt-5 text-sm text-white/80">개인용은 로그인 없이 체험할 수 있어요 · 기록은 현재 브라우저에 저장됩니다</p>
         </div>
       </section>
 

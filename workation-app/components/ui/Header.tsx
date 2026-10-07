@@ -46,6 +46,7 @@ export default function Header({ role: roleProp, userName: nameProp }: HeaderPro
   return (
     <header className="bg-white border-b border-[#E2E8F0] px-6 py-4">
       {(role === 'emp' || role === 'hr') && <nav aria-label="업무 관리" className="max-w-6xl mx-auto mb-3"><Link href="/workation-plans" className="text-sm font-semibold text-blue-700">{role === 'hr' ? '우리 회사 워케이션 · 목표 및 결과 검토 →' : '내 워케이션 · 목표 및 업무 기록 →'}</Link></nav>}
+      <nav className="max-w-6xl mx-auto mb-3"><Link href="/personal" className="text-sm font-semibold text-blue-700">개인 업무 도구 · 가입 없이 시작 →</Link></nav>
       <div className="max-w-6xl mx-auto flex items-center justify-between">
         <div className="flex items-center gap-4">
           <button onClick={() => router.back()} className="text-sm text-[#94A3B8] hover:text-[#475569] transition-colors">

@@ -83,6 +83,7 @@ export default function LoginPage() {
           </button>
         </div>
 
+        <Link href="/personal" className="block mt-6 rounded-xl border border-teal-200 bg-teal-50 p-4 text-center text-[#056f7c] font-semibold">회사 계정 없이 개인 업무 도구 사용하기 →</Link>
         <p className="text-center text-sm text-[#94A3B8] mt-6">
           계정이 없으신가요?{' '}
           <Link href="/register" className="text-blue-400 hover:underline font-medium">회원가입</Link>

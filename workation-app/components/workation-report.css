@@ -1,4 +1,6 @@
 .workation-report{background:#fff;color:#20373b;padding:40px;max-width:850px;margin:auto;font-family:Arial,'Malgun Gothic',sans-serif;line-height:1.7;overflow-wrap:anywhere}
+.report-evidence{margin-top:20px}.report-evidence figure{margin:18px 0;break-inside:avoid}.report-evidence img,.report-evidence video{width:100%;max-height:360px;object-fit:contain}.report-evidence figcaption{font-size:12px;margin-top:8px}.report-evidence figcaption p{white-space:pre-wrap}.report-evidence figcaption small{display:block;color:#617679}.report-evidence .evidence-video-print{display:none}
+@media print{.report-evidence .evidence-video-screen{display:none!important}.report-evidence .evidence-video-print{display:block!important;max-height:90mm}.report-evidence img{max-height:100mm}}
 .report-heading{display:flex;align-items:center;justify-content:space-between;gap:20px;border-bottom:3px solid #056f7c;padding-bottom:20px}
 .report-heading img{width:140px;height:auto}.report-heading span{font-size:10px;letter-spacing:1.4px;color:#577174}
 .workation-report h2{font-size:27px;margin:28px 0 6px;font-weight:700;letter-spacing:-1px}.report-state{font-size:12px;color:#056f7c;margin-bottom:28px}
